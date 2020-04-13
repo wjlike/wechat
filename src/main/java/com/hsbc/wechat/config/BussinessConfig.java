@@ -1,0 +1,63 @@
+package com.hsbc.wechat.config;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Controller;
+
+@Controller
+public class BussinessConfig {
+
+    private static String corpid;
+    private static String secret;
+    private static String prikey;
+    private static String mediapath;
+    private static String downloadpath;
+    private static String seqFilepPth;
+
+    public static String getCorpid() {
+        return corpid;
+    }
+
+    public static String getSecret() {
+        return secret;
+    }
+
+    public static String getPrikey() {
+        return prikey;
+    }
+
+    public static String getMediapath() {
+        return mediapath;
+    }
+
+    public static String getDownloadpath() {
+        return downloadpath;
+    }
+
+    public static String getSeqFilepPth() {
+        return seqFilepPth;
+    }
+    @Value("${wechat.corpid}")
+    public  void setCorpid(String corpid) {
+        BussinessConfig.corpid = corpid;
+    }
+    @Value("${wechat.secret}")
+    public  void setSecret(String secret) {
+        BussinessConfig.secret = secret;
+    }
+    @Value("${wechat.prikey}")
+    public  void setPrikey(String prikey) {
+        BussinessConfig.prikey = prikey;
+    }
+    @Value("${wechat.mediapath}")
+    public  void setMediapath(String mediapath) {
+        BussinessConfig.mediapath = mediapath;
+    }
+    @Value("${wechat.downloadpath}")
+    public  void setDownloadpath(String downloadpath) {
+        BussinessConfig.downloadpath = downloadpath;
+    }
+    @Value("${wechat.seqfileppth}")
+    public  void setSeqFilepPth(String seqFilepPth) {
+        BussinessConfig.seqFilepPth = seqFilepPth;
+    }
+}
