@@ -1,7 +1,6 @@
 package com.hsbc.wechat.tempalte;
 
 import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.JSONPObject;
 import com.hsbc.wechat.bean.wechat.ChatData;
 import com.hsbc.wechat.bean.wechat.ChatInfo;
 import com.hsbc.wechat.bean.wechat.ContentInfo;
@@ -13,12 +12,9 @@ import org.apache.commons.lang3.StringUtils;
 
 
 import javax.crypto.Cipher;
-import javax.crypto.NoSuchPaddingException;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.security.InvalidKeyException;
 import java.security.KeyFactory;
-import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.text.SimpleDateFormat;
@@ -37,7 +33,7 @@ public class WeChatAPITemplate extends Finance{
     private  long sdk = 0;
 
     //seq 默认为 0
-    private int seq = 0;
+    private long seq = 0;
     //每次获取的数量，最大值为1000
     private int limit=1000;
     //初始化默认超长时间为60s
@@ -94,8 +90,7 @@ public class WeChatAPITemplate extends Finance{
      * @param seq 本次请求获取消息记录开始的seq值。默认从0开始，非首次使用上次企业微信返回的最大seq。允许从任意seq重入拉取。Uint64类型，范围0-pow(2,64)-1
      */
     public void getChatData(int seq){
-        seq = seq<=0?0:seq;
-
+        seq = Math.max(seq, 0);
         ChatInfo chatInfo = null;
         //返回本次拉取消息的数据.密文消息
         long slice = NewSlice();
@@ -107,6 +102,7 @@ public class WeChatAPITemplate extends Finance{
         String data = GetContentFromSlice(slice);
 
         chatInfo = JSONObject.parseObject(data,ChatInfo.class);
+
 
         doDecryptChatInfo(chatInfo);
 
@@ -120,12 +116,12 @@ public class WeChatAPITemplate extends Finance{
     private void doDecryptChatInfo(ChatInfo chatInfo) {
         List<ChatData> chatDatas = chatInfo.getChatData();
         chatDatas.forEach(chatData -> {
-
+            this.seq = Math.max(chatData.getSeq(),this.seq);
             try {
                 byte[] decode = Base64.getDecoder().decode(priKey);
                 PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(decode);
                 KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-                PrivateKey privateKey = KeyFactory.generateprivate(keySpec);
+                PrivateKey privateKey = keyFactory.generatePrivate(keySpec);
 
                 byte[] contentbyte = Base64.getDecoder().decode(chatData.getEncrypt_random_key());
                 Cipher cipher = Cipher.getInstance("RSA");
@@ -241,7 +237,7 @@ public class WeChatAPITemplate extends Finance{
         String indexbuf = "";
         while (true) {
             long media_data = Finance.NewMediaData();
-            ret = GetMediaData(sdk, indexbuf, sdkField, null, null, timeout, media_data);
+            ret = GetMediaData(sdk, indexbuf, sdkField, null, null, mediaTimeOut, media_data);
             if (ret != 0) {
                 return outputFilePath;
             }
