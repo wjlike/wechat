@@ -6,9 +6,11 @@ import com.hsbc.wechat.bean.wechat.ChatData;
 import com.hsbc.wechat.bean.wechat.ChatInfo;
 import com.hsbc.wechat.bean.wechat.ContentInfo;
 import com.hsbc.wechat.config.BussinessConfig;
+import com.hsbc.wechat.util.FileUtil;
 import com.tencent.wework.Finance;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
+import org.apache.commons.lang3.StringUtils;
+
 
 import javax.crypto.Cipher;
 import javax.crypto.NoSuchPaddingException;
@@ -19,7 +21,9 @@ import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.spec.PKCS8EncodedKeySpec;
+import java.text.SimpleDateFormat;
 import java.util.Base64;
+import java.util.Date;
 import java.util.List;
 
 
@@ -27,6 +31,7 @@ import java.util.List;
  * @author like
  * WeChat API Util
  */
+@Slf4j
 public class WeChatAPITemplate extends Finance{
 
     private  long sdk = 0;
@@ -132,7 +137,7 @@ public class WeChatAPITemplate extends Finance{
                 String encrypt_chat_msg = chatData.getEncrypt_chat_msg();
                 ContentInfo contentInfo = DecryptData(contentKey,encrypt_chat_msg);
 
-                generateContentInfo(contentInfo);
+                generateContentInfo(contentInfo,chatData.getSeq());
 
 
             } catch (Exception e) {
@@ -140,20 +145,6 @@ public class WeChatAPITemplate extends Finance{
             }
         });
 
-
-    }
-
-    /**
-     * 处理具体聊天内容
-     * @param contentInfo
-     */
-    private void generateContentInfo(ContentInfo contentInfo) {
-    }
-
-    /**
-     * 拉取媒体信息
-     */
-    private void handleMediaData(){
 
     }
 
@@ -176,56 +167,161 @@ public class WeChatAPITemplate extends Finance{
 
     }
 
-    /**
-     * 拉取媒体消息方法
-     * @param indexbuf 媒体消息分片拉取，需要填入每次拉取的索引信息。首次不需要填写，默认拉取512k，后续每次调用只需要将上次调用返回的outindexbuf填入即可。
-     * @param sdkField
-     * @return
-     */
-    public String GetMediaData(String indexbuf, String sdkField){
-        File f = null;
-        FileOutputStream outputStream = null;
-        long media_data = NewMediaData();
-        int ret = GetMediaData(sdk, indexbuf, sdkField, proxy, paswd, mediaTimeOut, media_data);
-        if (ret != 0) {
-            //  log.error("SDK WeChat DecryptData Error: ",ret);
-            FreeMediaData(media_data);
-            throw new RuntimeException("SDK WeChat GetMediaData Error: "+ret);
-        }
-        try {
-            f = new File(mediaPath);
-            outputStream  =new FileOutputStream(f);
-            outputStream.write(GetData(media_data));
-            outputStream.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        //IsMediaDataFinish = 1 拉取完成
-        if(Finance.IsMediaDataFinish(media_data) == 1)
-        {
-            FreeMediaData(media_data);
-        }
-        else
-        {
-            indexbuf = Finance.GetOutIndexBuf(media_data);
-            Finance.FreeMediaData(media_data);
-            GetMediaData(indexbuf,sdkField);
-        }
-        return f.getPath();
-    }
 
     public void DestroySdk(){
         DestroySdk(sdk);
     }
 
     /**
-     *
-     * @param chatObj 根据seq获取得到的聊天内容
+     * 处理具体聊天内容
+     * @param contentInfo
      */
-    public  void parseMediaDataTocal(JSONObject chatObj){
-        List<JSONObject> msgList = (List)chatObj.get("chatdata");
-        msgList.forEach(msg->{
-        });
+    private void generateContentInfo(ContentInfo contentInfo,Long seq) {
+        parseMediaDataTocal(contentInfo,seq);
+
+        parseContentToLocal(contentInfo,seq);
+
+    }
+
+    private void parseContentToLocal(ContentInfo contentInfo,long seq) {
+        String basefilepath = BussinessConfig.getDownloadpath();
+        String outputFilePath = "";
+        String[] strNow = new SimpleDateFormat("yyyy-MM-dd").format(new Date()).toString().split("-");
+        String year = strNow[0];
+        String month = strNow[1];
+        String day = strNow[2];
+        outputFilePath = basefilepath + "/" + year + "/" + month + "/" + day + "/content/" + contentInfo.getMsgType() + "/" + seq;
+        FileOutputStream outputStream = null;
+        try {
+            File file = new File(outputFilePath);
+            if(!file.exists()){file.mkdirs();}
+            outputStream = new FileOutputStream(file);
+            outputStream.write(JSONObject.toJSONString(contentInfo).getBytes());
+        }catch ( Exception e){
+            e.printStackTrace();
+        }finally {
+            if(outputStream!=null){
+                try {
+                    outputStream.close();
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+            }
+        }
+
+    }
+
+    /**
+     * 拉取媒体消息方法
+     * @return
+     */
+    private String handleMediaData(String sdkField,String msgType,String fileExt){
+
+        String basefilepath = BussinessConfig.getDownloadpath();
+        String outputFilePath = "";
+        String[] strNow = new SimpleDateFormat("yyyy-MM-dd").format(new Date()).toString().split("-");
+        String year = strNow[0];
+        String month = strNow[1];
+        String day = strNow[2];
+        //获取媒体文件生成路径
+        if (StringUtils.isNotBlank(msgType)) {
+            outputFilePath = basefilepath + "/" + year + "/" + month + "/" + day + "/media/" + msgType + "/" + seq + "."
+                    + fileExt;
+        } else {
+            outputFilePath = basefilepath + "/" + year + "/" + month + "/" + day + "/media/" + msgType + "/" + seq;
+        }
+
+        log.info("文件路径:" + outputFilePath);
+        File outputFile = new File(outputFilePath);
+
+        //如果已经存在文件,清空原有文件以便重新追加
+        FileUtil.clearFile(outputFile);
+
+        long ret = 0;
+        String indexbuf = "";
+        while (true) {
+            long media_data = Finance.NewMediaData();
+            ret = GetMediaData(sdk, indexbuf, sdkField, null, null, timeout, media_data);
+            if (ret != 0) {
+                return outputFilePath;
+            }
+            try {
+                //需要持续追加媒体内容,设置append参数为true
+                FileOutputStream outputStream = new FileOutputStream(outputFile, true);
+                outputStream.write(Finance.GetData(media_data));
+                outputStream.close();
+            } catch (Exception e) {
+                throw new RuntimeException("导出媒体文件失败:" + e.getMessage());
+            }
+
+            if (Finance.IsMediaDataFinish(media_data) == 1) {
+                Finance.FreeMediaData(media_data);
+                break;
+            } else {
+                indexbuf = Finance.GetOutIndexBuf(media_data);
+                Finance.FreeMediaData(media_data);
+            }
+        }
+        return outputFilePath;
+
+    }
+
+    /**
+     *
+     * @param contentInfo 聊天内容
+     */
+    public  void parseMediaDataTocal(ContentInfo contentInfo,Long seq){
+        String msgType = "";
+        String mediaPath = "";
+
+        if (StringUtils.isNotBlank(contentInfo.getMsgType())) {
+            msgType = contentInfo.getMsgType();
+        }
+
+        if ("text".equals(msgType)) {
+        } else if ("agree".equals(msgType)) {
+
+        } else if ("card".equals(msgType)) {
+
+        } else if ("emotion".equals(msgType)) {
+
+            mediaPath = handleMediaData(contentInfo.getEmotion().getSdkfileid(),msgType,
+                    contentInfo.getEmotion().getType() == 1 ? "gif" : "png");
+            contentInfo.getEmotion().setUrl(mediaPath);
+
+        } else if ("file".equals(msgType)) {
+
+            mediaPath = handleMediaData(contentInfo.getFile().getSdkfileid(),msgType,
+                    contentInfo.getFile().getFileext());
+            contentInfo.getFile().setUrl(mediaPath);
+        } else if ("image".equals(msgType)) {
+
+            mediaPath = handleMediaData(contentInfo.getImage().getSdkfileid(),msgType,
+                    "jpg");
+            contentInfo.getImage().setUrl(mediaPath);
+
+        } else if ("link".equals(msgType)) {
+
+        } else if ("location".equals(msgType)) {
+
+        } else if ("revoke".equals(msgType)) {
+
+        } else if ("video".equals(msgType)) {
+
+            mediaPath = handleMediaData(contentInfo.getVideo().getSdkfileid(),msgType,
+                    null);
+            contentInfo.getVideo().setUrl(mediaPath);
+
+        } else if ("voice".equals(msgType)) {
+
+            mediaPath = handleMediaData(contentInfo.getVoice().getSdkfileid(),msgType,
+                    null);
+            contentInfo.getVoice().setUrl(mediaPath);
+        } else if ("weapp".equals(msgType)) {
+
+        } else {
+            log.info("不支持的消息类型msgType={}" ,msgType);
+        }
 
     }
 

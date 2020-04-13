@@ -44,5 +44,9 @@ public class Emotion implements Serializable {
      * 资源的文件大小
      */
     private Long imagesize;
+    /**
+     * local url
+     */
+    private String url;
 
 }

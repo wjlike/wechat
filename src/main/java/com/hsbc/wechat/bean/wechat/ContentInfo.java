@@ -108,4 +108,6 @@ public class ContentInfo implements Serializable {
      * 地址位置信息
      */
     private WeApp weapp;
+
+
 }

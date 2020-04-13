@@ -30,4 +30,10 @@ public class Image implements Serializable {
      */
     private String filesize;
 
+
+    /**
+     * local url
+     */
+    private String url;
+
 }

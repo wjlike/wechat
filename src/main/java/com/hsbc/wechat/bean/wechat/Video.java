@@ -34,4 +34,10 @@ public class Video implements Serializable {
      * 视频播放长度
      */
     private Long play_length;
+
+
+    /**
+     * local url
+     */
+    private String url;
 }

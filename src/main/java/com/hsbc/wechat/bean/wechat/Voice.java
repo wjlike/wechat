@@ -35,4 +35,10 @@ public class Voice implements Serializable {
      */
     private String md5sum;
 
+
+    /**
+     * local url
+     */
+    private String url;
+
 }

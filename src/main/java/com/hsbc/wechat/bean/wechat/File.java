@@ -40,4 +40,10 @@ public class File implements Serializable {
      */
     private String filesize;
 
+
+    /**
+     * local url
+     */
+    private String url;
+
 }
