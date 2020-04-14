@@ -12,6 +12,7 @@ public class BussinessConfig {
     private static String mediapath;
     private static String downloadpath;
     private static String seqFilepPth;
+    private static String logPath;
 
     public static String getCorpid() {
         return corpid;
@@ -36,6 +37,10 @@ public class BussinessConfig {
     public static String getSeqFilepPth() {
         return seqFilepPth;
     }
+    public static String getLogPath() {
+        return logPath;
+    }
+
     @Value("${wechat.corpid}")
     public  void setCorpid(String corpid) {
         BussinessConfig.corpid = corpid;
@@ -59,5 +64,9 @@ public class BussinessConfig {
     @Value("${wechat.seqfileppth}")
     public  void setSeqFilepPth(String seqFilepPth) {
         BussinessConfig.seqFilepPth = seqFilepPth;
+    }
+    @Value("${wechat.logpath}")
+    public  void setLogPath(String logPath) {
+        BussinessConfig.logPath = logPath;
     }
 }
