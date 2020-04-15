@@ -2,7 +2,8 @@ package com.hsbc.wechat.service.impl;
 
 import com.hsbc.wechat.config.BussinessConfig;
 import com.hsbc.wechat.service.WeChatContentService;
-import com.hsbc.wechat.tempalte.WeChatAPITemplate;
+import com.hsbc.wechat.tempalte.WechatApiService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
@@ -12,26 +13,28 @@ import java.io.FileReader;
 
 @Service
 public class WeChatContentServiceImpl implements WeChatContentService {
+    @Autowired
+    WechatApiService wechatApiService;
     @Override
     public void doWeChatContent() {
 
-        int seq = getLocatSeq();
-        WeChatAPITemplate template = new WeChatAPITemplate();
-        template.getChatData(seq);
+        long seq = getLocatSeq();
+        seq = wechatApiService.get(seq);
+//        template.getChatData(seq);
         writeSeqToLocal(seq);
 
     }
 
 
 
-    private void writeSeqToLocal(int seq){
+    private void writeSeqToLocal(long seq){
         String seqFilePath = BussinessConfig.getSeqFilepPth();
         FileOutputStream outputStream = null;
         try {
             File file = new File(seqFilePath);
             if(!file.exists()){file.mkdirs();}
             outputStream = new FileOutputStream(file);
-            outputStream.write(seq);
+            outputStream.write((seq+"").getBytes());
         }catch ( Exception e){
             e.printStackTrace();
         }finally {
