@@ -5,6 +5,8 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.Arrays;
 
+import com.hsbc.wechat.bean.SftpLog;
+import com.hsbc.wechat.service.SftpService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -135,10 +137,30 @@ public class SftpFileUtil {
         }
     }
 
-    //上传单个文件
+    /**
+     * 上传单个文件，以断点续传的方式
+     * @param targetPath 上传到的目录，服务器的相对目录
+     * @param inputStream 文件流
+     * @return 上传是否成功
+     * @throws Exception
+     */
     public static boolean uploadFile(String targetPath, InputStream inputStream) throws Exception {
+        return uploadFile(targetPath, inputStream, 2);
+    }
+
+    /**
+     * 上传单个文件
+     * @param targetPath 上传到的目录，服务器的相对目录
+     * @param inputStream 文件流
+     * @param mode 上传模式：1-覆盖，2-断点续传，3-追加
+     * @return 上传是否成功
+     * @throws Exception
+     */
+    public static boolean uploadFile(String targetPath, InputStream inputStream, int mode) throws Exception {
         ChannelSftp sftp = createSftp();
+        boolean flag = false;
         try {
+            createDirs(config.getRoot(), sftp);
             sftp.cd(config.getRoot());
             logger.info("Change path to {}", config.getRoot());
 
@@ -150,87 +172,182 @@ public class SftpFileUtil {
                 logger.error("Remote path error. path:{}", targetPath);
                 throw new Exception("Upload File failure");
             }
-            sftp.put(inputStream, fileName);
-            return true;
+            sftp.put(inputStream, fileName, mode);
+            flag = true;
         } catch (Exception e) {
+            flag = false;
             logger.error("Upload file failure. TargetPath: {}", targetPath, e);
             throw new Exception("Upload File failure");
         } finally {
+            if (inputStream != null) {
+                inputStream.close();
+            }
+            disconnect(sftp);
+            afterUploadOne(targetPath, flag);
+            return flag;
+        }
+    }
+
+    /**
+     * 上传单个文件，以断点续传方式上传
+     * @param targetPath 上传到的目录，服务器的相对目录
+     * @param file 待上传的文件
+     * @return 上传是否成功
+     * @throws Exception
+     */
+    public static boolean uploadFile(String targetPath, File file) throws Exception {
+        return uploadFile(targetPath, file, 2);
+    }
+
+    /**
+     * 上传单个文件
+     * @param targetPath 上传到的目录，服务器的相对目录
+     * @param file 待上传的文件
+     * @param mode 上传模式：1-覆盖，2-断点续传，3-追加
+     * @return 上传是否成功
+     * @throws Exception
+     */
+    public static boolean uploadFile(String targetPath, File file, int mode) throws Exception {
+        return uploadFile(targetPath, new FileInputStream(file), mode);
+    }
+
+    /**
+     * 上传单个文件，该方法用于批量上传，因此中间不会申请新的sftp连接，也不会关闭连接，
+     * 请调用方在批量任务开始时自己申请连接，批量任务结束后主动关闭连接
+     * @param sftp sftp服务器的连接
+     * @param targetPath 上传目录，服务器的相对目录
+     * @param inputStream 待上传的文件流
+     * @param mode 上传模式：1-覆盖，2-断点续传，3-追加
+     * @return 上传是否成功
+     * @throws Exception
+     */
+    private static boolean uploadFile(ChannelSftp sftp, String targetPath, InputStream inputStream, int mode) throws Exception {
+        boolean flag = false;
+        try {
+            int index = targetPath.lastIndexOf("/");
+            String fileDir = targetPath.substring(0, index);
+            String fileName = targetPath.substring(index + 1);
+            boolean dirs = createDirs(fileDir, sftp);
+            if (!dirs) {
+                logger.error("Remote path error. path:{}", targetPath);
+                throw new Exception("Upload File failure");
+            }
+            //切换到目标目录
+            fileDir = fileDir.startsWith("/") ? fileDir.substring(1) : fileDir;
+            sftp.cd(fileDir);
+            sftp.put(inputStream, fileName, mode);
+            //切换回原目录
+            int len = fileDir.split("/").length;
+            String back = "";
+            for (int i=0; i<len; i++) {
+                back += "../";
+            }
+            sftp.cd(back);
+            flag = true;
+        } catch (Exception e) {
+            flag = false;
+            logger.error("Upload file failure. TargetPath: {}", targetPath, e);
+            throw new Exception("Upload File failure");
+        } finally {
+            if (inputStream != null) {
+                inputStream.close();
+            }
+            afterUploadOne(targetPath, flag);
+            return flag;
+        }
+    }
+
+    /**
+     * 上传单个文件，该方法用于批量上传，因此中间不会申请新的sftp连接，也不会关闭连接，
+     * 请调用方在批量任务开始时自己申请连接，批量任务结束后主动关闭连接
+     * @param sftp sftp服务器的连接
+     * @param targetPath 上传目录，服务器的相对目录
+     * @param file 待上传的文件
+     * @param mode 上传模式：1-覆盖，2-断点续传，3-追加
+     * @return 上传是否成功
+     * @throws Exception
+     */
+    private static boolean uploadFile(ChannelSftp sftp, String targetPath, File file, int mode) throws Exception {
+        return uploadFile(sftp, targetPath, new FileInputStream(file), mode);
+    }
+
+    /**
+     * 上传文件夹，默认断点续传的方式
+     * @param localPath 本地文件
+     * @param isRecursion 是否递归
+     * @return
+     */
+    public static boolean uploadPath(File localPath, boolean isRecursion) {
+        return uploadPath(localPath, isRecursion, 2);
+    }
+    /**
+     * 上传文件夹
+     * @param localPath 本地文件
+     * @param isRecursion 是否递归
+     * @param mode 上传模式：1-覆盖，2-断点续传，3-追加
+     * @return
+     */
+    public static boolean uploadPath(File localPath, boolean isRecursion, int mode) {
+        ChannelSftp sftp = null;
+        try {
+            //是否存在根目录，没有则创建
+            sftp = createSftp();
+            String rootPath = config.getRoot();
+            rootPath = rootPath.startsWith("/") ? rootPath.substring(1) : rootPath;
+            try {
+                sftp.cd(rootPath);
+            } catch (Exception e) {
+                createDirs(rootPath, sftp);
+                sftp.cd(rootPath);
+            }
+            logger.info("Change path to {}", config.getRoot());
+            //开始上传
+            uploadPathSub(sftp, localPath, isRecursion, mode);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        } finally {
             disconnect(sftp);
         }
+        return true;
     }
 
-    //上传单个文件
-    public static boolean uploadFile(String targetPath, File file) throws Exception {
-        return uploadFile(targetPath, new FileInputStream(file));
-    }
 
     /**
-     * 递归上传整个目录及子目录下的所有文件，该方法暴露给外部使用
-     * @param targetPath 服务器目标目录
-     * @param localFilePath 本地目录
-     * @return
+     * 上传文件夹，该方法用于批量上传，因此中间不会申请新的sftp连接，也不会关闭连接，
+     * 请调用方在批量任务开始时自己申请连接，批量任务结束后主动关闭连接
+     * @param sftp sftp服务器的连接
+     * @param localPath 本地文件目录
+     * @param mode 上传模式：1-覆盖，2-断点续传，3-追加
+     * @return 上传是否成功
      * @throws Exception
      */
-    public static void uploadFilePath(String targetPath, String localFilePath) throws Exception {
-        uploadFilePath(targetPath, new File(localFilePath));
-    }
-
-    /**
-     * 递归上传整个目录及子目录下的所有文件，该方法暴露给外部使用
-     * @param targetPath 服务器目标目录
-     * @param localFilePath 本地目录
-     * @return
-     * @throws Exception
-     */
-    public static void uploadFilePath(String targetPath, File localFilePath) throws Exception {
-        ChannelSftp sftp = createSftp();
-        uploadFilePathSub(targetPath, localFilePath, sftp);
-        disconnect(sftp);
-    }
-
-    /**
-     * 递归上传整个目录及子目录下的所有文件，工具类内部使用
-     * @param targetPath 服务器目标目录
-     * @param localFilePath 本地目录
-     * @param sftp 可使用的sftp连接，需要调用者自己创建连接，并在处理完成后主动释放
-     * @return
-     * @throws Exception
-     */
-    private static void uploadFilePathSub(String targetPath, File localFilePath, ChannelSftp sftp) throws Exception {
-        //递归出口：如果是文件，则直接上传
-        if (localFilePath.isFile()) {
-            sftp.put(new FileInputStream(localFilePath), localFilePath.getName());
-        } else { //如果是目录，则进入sftp服务器的目录（进入失败则创建目录）
-            String dir = localFilePath.getName();
-            try {
-                sftp.cd(dir);
-                logger.info("Change directory {}", dir);
-            } catch (Exception e) {
-                try {
-                    sftp.mkdir(dir);
-                    logger.info("Create directory {}", dir);
-                } catch (SftpException e1) {
-                    logger.error("Create directory failure, directory:{}", dir, e1);
-                    e1.printStackTrace();
+    private static boolean uploadPathSub(ChannelSftp sftp, File localPath, boolean isRecursion, int mode) {
+        try {
+            if (localPath.isFile()) {
+                //获取相对目录
+                String subPath = localPath.getAbsolutePath().replace("\\", "/")
+                        .substring(config.getLocalRootPath().length());
+                subPath = subPath.startsWith("/") ? subPath.substring(1) : subPath;
+                //上传
+                SftpFileUtil.uploadFile(sftp, subPath, localPath, mode);
+            }
+            //遍历子文件夹和文件
+            else if (isRecursion && localPath.isDirectory()) {
+                File[] children = localPath.listFiles();
+                if (children == null) {
+                    return true;
                 }
-                try {
-                    sftp.cd(dir);
-                    logger.info("Change directory {}", dir);
-                } catch (SftpException e1) {
-                    logger.error("Change directory failure, directory:{}", dir, e1);
-                    e1.printStackTrace();
+                for (File file : children) {
+                    uploadPathSub(sftp, file, isRecursion, mode);
                 }
             }
-            //循环本地目录下的所有文件，上传到sftp服务器的对应目录下
-            File[] files = localFilePath.listFiles();
-            if (files == null) {
-                return;
-            }
-            for (File file : files) {
-                uploadFilePathSub(targetPath + "/" + dir, file, sftp);
-            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
         }
+        return true;
     }
 
     //创建多级目录
@@ -241,7 +358,14 @@ public class SftpFileUtil {
                     .filter(SftpFileUtil::isNotBlank)
                     .toArray(String[]::new);
 
+            String back = "";
+
             for (String dir : dirs) {
+                if (dir == null || dir.trim().length() == 0) {
+                    continue;
+                }
+                //创建完目录再返回当前目录
+                back += "../";
                 try {
                     sftp.cd(dir);
                     logger.info("Change directory {}", dir);
@@ -262,6 +386,13 @@ public class SftpFileUtil {
                     }
                 }
             }
+            //返回当前目录
+            try {
+                sftp.cd(back);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
             return true;
         }
         return false;
@@ -270,6 +401,26 @@ public class SftpFileUtil {
     //是否非空字符串
     private static boolean isNotBlank(String str) {
         return str != null && str.trim().length() > 0;
+    }
+
+    /**
+     * 单个文件上传完成后的处理，比如记录日志，文件迁移等
+     * @param targetPath SFTP目标地址
+     * @param flag 是否上传成功
+     * @return void
+     */
+    private static void afterUploadOne(String targetPath, boolean flag) {
+        log(targetPath, flag);
+    }
+
+    /**
+     * 记录上传日志，并迁移文件
+     * @param targetPath SFTP上传的目标地址
+     * @param flag 是否上传成功
+     * @return void
+     */
+    private static void log(String targetPath, boolean flag) {
+        SftpLogUtil.afterUploadOne(targetPath, flag);
     }
 
 }

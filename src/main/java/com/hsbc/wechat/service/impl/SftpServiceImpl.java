@@ -1,6 +1,7 @@
 package com.hsbc.wechat.service.impl;
 
 import com.hsbc.wechat.service.SftpService;
+import com.hsbc.wechat.util.FileUtil;
 import com.hsbc.wechat.util.SftpFileUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -24,47 +25,31 @@ public class SftpServiceImpl implements SftpService {
     /**
      * 文件上传到SFTP服务器
      *
-     * @param targetPath  SFTP目标地址
      * @param localPath   本地文件地址
      * @param isRecursion 是否递归上传子目录中的文件和文件夹
-     * @param isCover     如果服务器已有同名文件，是否覆盖（默认覆盖，暂不支持跳过）
+     * @param mode 上传模式：1-覆盖，2-断点续传，3-追加
      * @return 是否全部上传成功
      */
     @Override
-    public boolean uploadPath(String targetPath, String localPath, boolean isRecursion, boolean isCover) {
-        try {
-            //上传
-            SftpFileUtil.uploadFilePath(targetPath, localPath);
-            //已上传文件的迁移
-            movePath(new File(localPath));
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
+    public boolean uploadPath(File localPath, boolean isRecursion, int mode) {
+        boolean flag = SftpFileUtil.uploadPath(localPath, isRecursion, mode);
+        if (flag) {
+            movePath(localPath);
         }
-        return true;
+        return flag;
     }
 
     /**
      * 文件上传到SFTP服务器
      *
-     * @param targetPath  SFTP目标地址
-     * @param localFile   本地文件地址对应的File对象
+     * @param localPath   本地文件地址
      * @param isRecursion 是否递归上传子目录中的文件和文件夹
-     * @param isCover     如果服务器已有同名文件，是否覆盖（默认覆盖，暂不支持跳过）
+     * @param mode 上传模式：1-覆盖，2-断点续传，3-追加
      * @return 是否全部上传成功
      */
     @Override
-    public boolean uploadPath(String targetPath, File localFile, boolean isRecursion, boolean isCover) {
-        try {
-            //上传
-            SftpFileUtil.uploadFilePath(targetPath, localFile);
-            //已上传文件的迁移
-            movePath(localFile);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-        return true;
+    public boolean uploadPath(String localPath, boolean isRecursion, int mode) {
+        return uploadPath(new File(localPath), isRecursion, mode);
     }
 
     /**
@@ -72,13 +57,14 @@ public class SftpServiceImpl implements SftpService {
      *
      * @param targetPath SFTP目标地址
      * @param localFile  本地文件地址对应的File对象
+     * @param mode 上传模式：1-覆盖，2-断点续传，3-追加
      * @return 是否上传成功
      */
     @Override
-    public boolean uploadFile(String targetPath, File localFile) {
+    public boolean uploadFile(String targetPath, File localFile, int mode) {
         try {
             //上传
-            SftpFileUtil.uploadFile(targetPath, localFile);
+            SftpFileUtil.uploadFile(targetPath, localFile, mode);
             //已上传文件的迁移
             moveFile(localFile);
         } catch (Exception e) {
@@ -93,15 +79,18 @@ public class SftpServiceImpl implements SftpService {
      *
      * @param targetPath SFTP目标地址
      * @param localFilePath  本地文件地址
+     * @param mode 上传模式：1-覆盖，2-断点续传，3-追加
      * @return 是否上传成功
      */
     @Override
-    public boolean uploadFile(String targetPath, String localFilePath) {
-        return uploadFile(targetPath, new File(localFilePath));
+    public boolean uploadFile(String targetPath, String localFilePath, int mode) {
+        return uploadFile(targetPath, new File(localFilePath), mode);
     }
 
     /**
-     * 文件夹剪切，已上传成功的文件夹，挪到备份文件夹
+     * 文件夹剪切，已上传成功的文件夹，挪到备份文件夹。
+     * 全部上传完成后，统一迁移。（已经在SftpFileUtil中实现，该方法实际只删除空文件夹）
+     * 如果需要单个文件上传完成马上迁移，需修改文件上传公用类
      * @param srcFile
      */
     private void movePath(File srcFile) {
@@ -110,12 +99,21 @@ public class SftpServiceImpl implements SftpService {
             moveFile(srcFile);
         } else {
             File[] childrenFile = srcFile.listFiles();
-            for (File f : childrenFile) {
-                movePath(f);
+            if (childrenFile != null) {
+                for (File f : childrenFile) {
+                    movePath(f);
+                }
             }
         }
-        //剩下一堆空文件夹怎么处理？删除？
-        srcFile.delete();
+        /*
+        //剩下一堆空文件夹怎么处理？删除？删除会误删其他正在从微信下载的文件。
+        try {
+            srcFile.delete();
+            System.out.println("delete file=" + srcFile.getAbsolutePath());
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+        */
     }
 
     /**
@@ -136,7 +134,54 @@ public class SftpServiceImpl implements SftpService {
             parent.mkdirs();
         }
         //文件剪切（重命名）
-        srcFile.renameTo(destFile);
+        try {
+            srcFile.renameTo(destFile);
+            System.out.println("move srcFile=" + srcFile.getAbsolutePath());
+            System.out.println("move destFile=" + destFile.getAbsolutePath());
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    /**
+     * 文件上传到SFTP服务器，默认断点续传的方式
+     * @param localPath 本地文件地址
+     * @param isRecursion 是否递归上传子目录中的文件和文件夹
+     * @return 是否全部上传成功
+     */
+    public boolean uploadPath(String localPath, boolean isRecursion) {
+        return uploadPath(localPath, isRecursion, 2);
+    }
+
+    /**
+     * 文件上传到SFTP服务器，默认断点续传的方式
+     * @param localFile 本地文件地址对应的File对象
+     * @param isRecursion 是否递归上传子目录中的文件和文件夹
+     * @return 是否全部上传成功
+     */
+    public boolean uploadPath(File localFile, boolean isRecursion) {
+        return uploadPath(localFile, isRecursion, 2);
+    }
+
+    /**
+     * 单个文件上传到SFTP服务器，默认断点续传的方式
+     * @param targetPath SFTP目标地址
+     * @param localFile 本地文件地址对应的File对象
+     * @return 是否上传成功
+     */
+    public boolean uploadFile(String targetPath, File localFile) {
+        return uploadFile(targetPath, localFile, 2);
+    }
+
+    /**
+     * 单个文件上传到SFTP服务器，默认断点续传的方式
+     * @param targetPath SFTP目标地址
+     * @param localFilePath 本地文件地址
+     * @return 是否上传成功
+     */
+    public boolean uploadFile(String targetPath, String localFilePath) {
+        return uploadFile(targetPath, localFilePath, 2);
     }
 
 }

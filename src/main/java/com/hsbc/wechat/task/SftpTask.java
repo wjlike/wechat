@@ -1,10 +1,13 @@
 package com.hsbc.wechat.task;
 
 import com.hsbc.wechat.service.SftpService;
+import com.hsbc.wechat.util.FileLogUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+
+import java.io.File;
 
 @Component
 public class SftpTask {
@@ -20,13 +23,10 @@ public class SftpTask {
     @Scheduled(cron = "0 * * * * ?")
     public void upload() {
         System.out.println("start task");
-        String remoteRoot = "/temp/test";
-        //String subPath = "/2020/04/13";
-        String subPath = "index.html";
-        String localPath = localRootFilePath + subPath;
-        localPath = localRootFilePath.replace("//", "/");
-        String remotePath = remoteRoot + subPath;
-        sftpService.uploadPath(remotePath, localPath, true, true);
+        String subPath = "2020";
+        String localPath = (localRootFilePath + "/" + subPath).replace("//", "/");
+        sftpService.uploadPath(new File(localPath), true);
         System.out.println("end task");
     }
+
 }
