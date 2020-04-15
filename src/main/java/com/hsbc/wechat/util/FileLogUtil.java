@@ -12,8 +12,6 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.hsbc.wechat.bean.WxLogBean;
 import com.hsbc.wechat.config.BussinessConfig;
-import org.aspectj.lang.ProceedingJoinPoint;
-import org.aspectj.lang.Signature;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
@@ -42,6 +40,7 @@ public class FileLogUtil {
     }
 
     //实际的日志处理逻辑，循环队列中所有的对象，依次写入文件
+    @Async
     private static void writeToFile() {
         Date d = new Date();
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");

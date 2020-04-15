@@ -32,4 +32,7 @@ public class SftpConfig {
 
     private Integer channelConnectedTimeout;
 
+    //sftp客户端文件根目录（本地文件根目录）
+    private String localRootPath;
+
 }
