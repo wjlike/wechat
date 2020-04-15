@@ -77,7 +77,7 @@ public class SftpLogUtil {
             String content = "";
             for (SftpLog o : logList) {
                 sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-                content = sdf.format("datetime: " + new Date()) + "\t status: " + o.isSuccessFlag() + "\t to path: " + o.getPath();
+                content = "date_time: " + sdf.format(new Date()) + "\t is_success: " + o.isSuccessFlag() + "\t to_path: /" + o.getPath();
                 pw.println(content);
                 logList.remove(o);
             }
