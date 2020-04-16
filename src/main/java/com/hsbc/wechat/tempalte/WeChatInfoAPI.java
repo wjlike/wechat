@@ -2,13 +2,14 @@ package com.hsbc.wechat.tempalte;
 
 import com.alibaba.fastjson.JSONObject;
 import com.hsbc.wechat.bean.wechat.ChatInfo;
+import com.hsbc.wechat.util.FileLogUtil;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-@Service
+//@Service
 public class WeChatInfoAPI extends  WeChatAPITemplateAbstract implements WechatApiService {
     /**
      * 注：获取会话记录内容不能超过3天
@@ -16,6 +17,7 @@ public class WeChatInfoAPI extends  WeChatAPITemplateAbstract implements WechatA
      */
     ExecutorService service = Executors.newFixedThreadPool(10);
     private void getChatData(long seq){
+        long startTimeMillis = System.currentTimeMillis();
         seq = Math.max(seq, 0);
         ChatInfo chatInfo = null;
         //返回本次拉取消息的数据.密文消息
@@ -23,9 +25,14 @@ public class WeChatInfoAPI extends  WeChatAPITemplateAbstract implements WechatA
         int ret = GetChatData(sdk, seq, limit, proxy, paswd, timeout, slice);
         if (ret != 0) {
             // log.error("getchatdata ret :()",ret);
+            RuntimeException e = new RuntimeException("get WeChat Content Error: "+ret);
+            //记录微信聊天记录下载请求日志
+            FileLogUtil.writeLog(e, startTimeMillis, seq);
             throw new RuntimeException("get WeChat Content Error: "+ret);
         }
         String data = GetContentFromSlice(slice);
+        //记录微信聊天记录下载请求日志
+        FileLogUtil.writeLog(data, startTimeMillis, seq);
 
         chatInfo = JSONObject.parseObject(data,ChatInfo.class);
 

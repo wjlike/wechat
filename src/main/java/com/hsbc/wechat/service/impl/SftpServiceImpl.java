@@ -105,13 +105,15 @@ public class SftpServiceImpl implements SftpService {
                 }
             }
         }
-        //剩下一堆空文件夹怎么处理？删除？
+        /*
+        //剩下一堆空文件夹怎么处理？删除？删除会误删其他正在从微信下载的文件。
         try {
             srcFile.delete();
             System.out.println("delete file=" + srcFile.getAbsolutePath());
         } catch(Exception e) {
             e.printStackTrace();
         }
+        */
     }
 
     /**

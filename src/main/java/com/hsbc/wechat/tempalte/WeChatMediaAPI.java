@@ -5,6 +5,7 @@ import com.hsbc.wechat.bean.wechat.ChatData;
 import com.hsbc.wechat.bean.wechat.ChatInfo;
 import com.hsbc.wechat.bean.wechat.ContentInfo;
 import com.hsbc.wechat.config.BussinessConfig;
+import com.hsbc.wechat.util.FileLogUtil;
 import com.hsbc.wechat.util.FileUtil;
 import com.hsbc.wechat.util.ThreadLocalUtil;
 import com.tencent.wework.Finance;
@@ -41,7 +42,7 @@ public class WeChatMediaAPI extends WeChatAPITemplateAbstract implements Runnabl
      * @return
      */
     public String handleMediaData(String sdkField,String msgType,String fileExt,long  seq){
-
+        long startTimeMillis = System.currentTimeMillis();
         String basefilepath = BussinessConfig.getDownloadpath();
         String outputFilePath = "";
         String[] strNow = new SimpleDateFormat("yyyy-MM-dd").format(new Date()).toString().split("-");
@@ -76,6 +77,8 @@ public class WeChatMediaAPI extends WeChatAPITemplateAbstract implements Runnabl
                 outputStream.write(Finance.GetData(media_data));
                 outputStream.close();
             } catch (Exception e) {
+                //记录微信文件下载请求日志
+                FileLogUtil.writeLog(e, startTimeMillis, seq, sdkField);
                 throw new RuntimeException("导出媒体文件失败:" + e.getMessage());
             }
 
@@ -87,6 +90,8 @@ public class WeChatMediaAPI extends WeChatAPITemplateAbstract implements Runnabl
                 Finance.FreeMediaData(media_data);
             }
         }
+        //记录微信文件下载请求日志
+        FileLogUtil.writeLog(outputFilePath, startTimeMillis, seq, sdkField);
         return outputFilePath;
 
     }
@@ -226,15 +231,21 @@ public class WeChatMediaAPI extends WeChatAPITemplateAbstract implements Runnabl
      * @param encrypt_msg
      */
     private ContentInfo DecryptData(String encrypt_key, String encrypt_msg){
+        long startTimeMillis = System.currentTimeMillis();
         long msg = 0;
         int ret = DecryptData(sdk,encrypt_key,encrypt_msg,msg);
         if (ret != 0) {
             //  log.error("SDK 解密失败",ret);
             FreeSlice(msg);
-            throw new RuntimeException("SDK WeChat DecryptData Error: "+ret);
+            RuntimeException e = new RuntimeException("SDK WeChat DecryptData Error: "+ret);
+            //记录微信解密请求日志
+            FileLogUtil.writeLog(e, startTimeMillis);
+            throw e;
         }
         String data = GetContentFromSlice(msg);
         FreeSlice(msg);
+        //记录微信解密请求日志
+        FileLogUtil.writeLog(data, startTimeMillis);
         return JSONObject.parseObject(data,ContentInfo.class);
 
     }

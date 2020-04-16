@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
  * WeChat API Util
  */
 @Slf4j
-@Component
+//@Component
 public abstract class WeChatAPITemplateAbstract extends Finance {
 
     public long sdk = 0;

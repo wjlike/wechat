@@ -6,12 +6,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-@Component
+//@Component
 @Slf4j
 public class WeChatTask {
-    @Autowired
+    //@Autowired
     private WeChatContentService weChatContentService;
-    @Scheduled(cron = "${wechat.corn}")
+    //@Scheduled(cron = "${wechat.corn}")
     public void doWeChatContentTask(){
         log.info("START TO WECHAT TASK");
         try {

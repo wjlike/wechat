@@ -13,7 +13,7 @@ import java.io.FileReader;
 
 @Service
 public class WeChatContentServiceImpl implements WeChatContentService {
-    @Autowired
+    //@Autowired
     WechatApiService wechatApiService;
     @Override
     public void doWeChatContent() {

@@ -92,8 +92,40 @@ public class FileLogUtil {
      * 记录微信请求日志
      * @param result 微信返回的json内容，也可以为空，也可以为Exception或Throwable
      * @param startTimeMillis 请求的开始时间System.currentTimeMills
+     */
+    @Async
+    public static void writeLog(Object result, long startTimeMillis) {
+        writeLog(result, startTimeMillis, 0, null);
+    }
+
+    /**
+     * 记录微信请求日志
+     * @param result 微信返回的json内容，也可以为空，也可以为Exception或Throwable
+     * @param startTimeMillis 请求的开始时间System.currentTimeMills
      * @param seq 如果请求参数有seq，请传实际的seq，否则可以传0
-     * @param sdkFileId 如果请求参数有文件id，请传实际的sdkFileId，否则可以传0
+     */
+    @Async
+    public static void writeLog(Object result, long startTimeMillis, long seq) {
+        writeLog(result, startTimeMillis, seq, null);
+    }
+
+    /**
+     * 记录微信请求日志
+     * @param result 微信返回的json内容，也可以为空，也可以为Exception或Throwable
+     * @param startTimeMillis 请求的开始时间System.currentTimeMills
+     * @param sdkFileId 如果请求参数有文件id，请传实际的sdkFileId，否则可以传null
+     */
+    @Async
+    public static void writeLog(Object result, long startTimeMillis, String sdkFileId) {
+        writeLog(result, startTimeMillis, 0, sdkFileId);
+    }
+
+    /**
+     * 记录微信请求日志
+     * @param result 微信返回的json内容，也可以为空，也可以为Exception或Throwable
+     * @param startTimeMillis 请求的开始时间System.currentTimeMills
+     * @param seq 如果请求参数有seq，请传实际的seq，否则可以传0
+     * @param sdkFileId 如果请求参数有文件id，请传实际的sdkFileId，否则可以传null
      */
     @Async
     public static void writeLog(Object result, long startTimeMillis, long seq, String sdkFileId) {
