@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component;
  * 如需要用数据库记录请求日志，请参考此类实现。
  */
 @Component
-public class FileLogUtil {
+public class WxLogUtil {
 
     //待写入文件的日志信息队列
     public static List<WxLogBean> wxLogBeanList = new LinkedList<WxLogBean>();

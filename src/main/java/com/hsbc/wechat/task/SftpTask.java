@@ -1,7 +1,6 @@
 package com.hsbc.wechat.task;
 
 import com.hsbc.wechat.service.SftpService;
-import com.hsbc.wechat.util.FileLogUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
