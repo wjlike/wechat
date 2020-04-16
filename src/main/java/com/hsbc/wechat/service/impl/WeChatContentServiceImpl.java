@@ -30,9 +30,9 @@ public class WeChatContentServiceImpl implements WeChatContentService {
      */
     private long getLocatSeq(){
        String str =  FileUtil.readStringFromFile(BussinessConfig.getSeqFilepPth());
-       if("".equals(str)){
+       if(str==null || "".equals(str)){
            str = "0";
        }
-       return Long.getLong(str);
+       return Long.decode(str);
     }
 }

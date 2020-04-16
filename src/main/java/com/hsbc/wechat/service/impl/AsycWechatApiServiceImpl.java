@@ -1,6 +1,7 @@
 package com.hsbc.wechat.service.impl;
 
 import com.hsbc.wechat.service.AsycWechatApiService;
+import com.hsbc.wechat.tempalte.WeChatAPITemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -8,7 +9,9 @@ import org.springframework.stereotype.Service;
 public class AsycWechatApiServiceImpl implements AsycWechatApiService {
     @Override
     @Async
-    public long get(long seq) {
-        return 0;
+    public void get(long seq) {
+        WeChatAPITemplate template = new WeChatAPITemplate();
+        template.getChatData(seq);
+        template.DestroySdk();
     }
 }
