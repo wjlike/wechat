@@ -92,7 +92,7 @@ public class WeChatAPITemplate extends Finance{
      * 注：获取会话记录内容不能超过3天
      * @param seq 本次请求获取消息记录开始的seq值。默认从0开始，非首次使用上次企业微信返回的最大seq。允许从任意seq重入拉取。Uint64类型，范围0-pow(2,64)-1
      */
-    public void getChatData(int seq){
+    public void getChatData(long seq){
         long startTimeMillis = System.currentTimeMillis();
         seq = Math.max(seq, 0);
         ChatInfo chatInfo = null;
@@ -167,7 +167,7 @@ public class WeChatAPITemplate extends Finance{
      * @param encrypt_key
      * @param encrypt_msg
      */
-    public ContentInfo DecryptData(String encrypt_key, String encrypt_msg){
+    private ContentInfo DecryptData(String encrypt_key, String encrypt_msg){
         long startTimeMillis = System.currentTimeMillis();
         long msg = 0;
         int ret = DecryptData(sdk,encrypt_key,encrypt_msg,msg);
@@ -295,7 +295,7 @@ public class WeChatAPITemplate extends Finance{
      *
      * @param contentInfo 聊天内容
      */
-    public  void parseMediaDataTocal(ContentInfo contentInfo,Long seq){
+    private  void parseMediaDataTocal(ContentInfo contentInfo,Long seq){
         String msgType = "";
         String mediaPath = "";
 
@@ -351,10 +351,10 @@ public class WeChatAPITemplate extends Finance{
     }
     private long getLocatSeq(){
         String str =  FileUtil.readStringFromFile(BussinessConfig.getSeqFilepPth());
-        if("".equals(str)){
+        if(str==null || "".equals(str)){
             str = "0";
         }
-        return Long.getLong(str);
+        return Long.decode(str);
     }
 
 }
