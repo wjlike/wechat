@@ -24,7 +24,7 @@ import org.springframework.stereotype.Component;
 public class WxLogUtil {
 
     //待写入文件的日志信息队列
-    public static List<WxLogBean> wxLogBeanList = new LinkedList<WxLogBean>();
+    public static LinkedList<WxLogBean> wxLogBeanList = new LinkedList<WxLogBean>();
     //日志文件文件名前缀，实际的日志文件名形式举例：request_log_20200413.log
     private static final String PRE_LOG_NAME = "request_log_";
 
@@ -71,11 +71,16 @@ public class WxLogUtil {
                 pw.println(content);
             }
             //循环队列，写入日志
-            for (WxLogBean o : wxLogBeanList) {
-                wxLogBean = o;
+//            for (WxLogBean o : wxLogBeanList) {
+//                wxLogBean = o;
+//                content = wxLogBean.getTableContent();
+//                pw.println(content);
+//                wxLogBeanList.remove(wxLogBean);
+//            }
+            while (!wxLogBeanList.isEmpty()) {
+                wxLogBean = wxLogBeanList.poll();
                 content = wxLogBean.getTableContent();
                 pw.println(content);
-                wxLogBeanList.remove(wxLogBean);
             }
             pw.flush();
 
