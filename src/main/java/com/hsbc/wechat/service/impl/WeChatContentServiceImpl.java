@@ -4,6 +4,7 @@ import com.hsbc.wechat.config.BussinessConfig;
 import com.hsbc.wechat.service.WeChatContentService;
 import com.hsbc.wechat.service.WechatApiService;
 import com.hsbc.wechat.util.FileUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -12,6 +13,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 
+@Slf4j
 @Service
 public class WeChatContentServiceImpl implements WeChatContentService {
     @Autowired
@@ -19,8 +21,24 @@ public class WeChatContentServiceImpl implements WeChatContentService {
     @Override
     public void doWeChatContent() {
 
-        long seq = getLocatSeq();
-        wechatApiService.get(seq);
+        while (true){
+            try {
+                long seq = getLocatSeq();
+                wechatApiService.get(seq);
+                //一小时后查看是否还存在数据
+                Thread.sleep(10000);
+                boolean hasNext = wechatApiService.hasNext(getLocatSeq());
+                if(!hasNext){
+                    break;
+                }
+
+            }catch (Exception e){
+                e.printStackTrace();
+                log.error("WeChatContentServiceImpl doWeChatContent error:{}",e.getMessage());
+                break;
+            }
+
+        }
 
     }
 

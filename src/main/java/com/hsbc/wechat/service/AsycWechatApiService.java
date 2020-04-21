@@ -1,5 +1,7 @@
 package com.hsbc.wechat.service;
 
+import org.springframework.scheduling.annotation.AsyncResult;
+
 public interface AsycWechatApiService {
-    void get(long seq);
+    AsyncResult<Boolean> get(long seq);
 }
