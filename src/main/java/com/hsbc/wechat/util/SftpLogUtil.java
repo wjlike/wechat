@@ -15,7 +15,7 @@ import java.util.List;
 public class SftpLogUtil {
 
     //待写入文件的日志信息队列
-    public static List<SftpLog> logList = new LinkedList<SftpLog>();
+    public static LinkedList<SftpLog> logList = new LinkedList<SftpLog>();
     //日志文件文件名前缀，实际的日志文件名形式举例：request_log_20200413.log
     private static final String PRE_LOG_NAME = "sftp_log_";
 
@@ -75,11 +75,16 @@ public class SftpLogUtil {
             //追加方式写入文件
             pw = new PrintWriter(new FileWriter(file, true));
             String content = "";
-            for (SftpLog o : logList) {
-                sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+//            for (SftpLog o : logList) {
+//                sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+//                content = "date_time: " + sdf.format(new Date()) + "\t is_success: " + o.isSuccessFlag() + "\t to_path: /" + o.getPath();
+//                pw.println(content);
+//                logList.remove(o);
+//            }
+            while (!logList.isEmpty()) {
+                SftpLog o = logList.poll();
                 content = "date_time: " + sdf.format(new Date()) + "\t is_success: " + o.isSuccessFlag() + "\t to_path: /" + o.getPath();
                 pw.println(content);
-                logList.remove(o);
             }
             pw.flush();
         } catch (Exception e) {
