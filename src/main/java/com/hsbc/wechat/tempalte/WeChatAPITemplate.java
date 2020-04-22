@@ -93,6 +93,7 @@ public class WeChatAPITemplate extends Finance{
      * @param seq 本次请求获取消息记录开始的seq值。默认从0开始，非首次使用上次企业微信返回的最大seq。允许从任意seq重入拉取。Uint64类型，范围0-pow(2,64)-1
      */
     public void getChatData(long seq){
+        log.info("Start get ChatDate ! seq:{}",seq);
         long startTimeMillis = System.currentTimeMillis();
         seq = Math.max(seq, 0);
         ChatInfo chatInfo = null;
@@ -112,7 +113,11 @@ public class WeChatAPITemplate extends Finance{
 
         chatInfo = JSONObject.parseObject(data,ChatInfo.class);
 
-        if(chatInfo.getChatData().size()<=0){DestroySdk(); return;}
+        if(chatInfo.getChatData().size()<=0){
+            DestroySdk();
+            log.info("No ChatDate ! seq:{}",seq);
+            return;
+        }
 
         getAndWriteMaxSeq(chatInfo);
 
@@ -355,6 +360,26 @@ public class WeChatAPITemplate extends Finance{
             str = "0";
         }
         return Long.decode(str);
+    }
+
+    public boolean hasNextBySeq(long seq){
+        long startTimeMillis = System.currentTimeMillis();
+        seq = Math.max(seq, 0);
+        ChatInfo chatInfo = null;
+        //返回本次拉取消息的数据.密文消息
+        long slice = NewSlice();
+        int ret = GetChatData(sdk, seq, limit, proxy, paswd, timeout, slice);
+
+        String data = GetContentFromSlice(slice);
+
+        chatInfo = JSONObject.parseObject(data,ChatInfo.class);
+
+        if(chatInfo.getChatData().size()<=0){
+            DestroySdk();
+            log.info("No ChatDate ! seq:{}",seq);
+            return false;
+        }
+        return true;
     }
 
 }
