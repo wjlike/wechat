@@ -86,7 +86,7 @@ public class FileUtil {
     public static void writeStringToFile(String filePath, String countent) {
         try {
             File file = new File(filePath.substring(0, filePath.lastIndexOf('/')));
-            file.mkdirs();
+            if(!file.exists()){file.createNewFile();}
             FileOutputStream outputStream = new FileOutputStream(new File(filePath));
             outputStream.write(countent.getBytes());
             outputStream.close();

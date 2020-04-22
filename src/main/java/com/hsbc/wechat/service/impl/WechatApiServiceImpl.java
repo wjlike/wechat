@@ -25,7 +25,7 @@ public class WechatApiServiceImpl implements WechatApiService {
     public void get(long seq) {
 
         for (int i = 1; i <= QUERY_LIMIST ; i++) {
-            AsyncResult<Boolean> result =  asycWechatApiService.get(seq+(QUERY_LIMIST-1)*chatdata_limit);
+             asycWechatApiService.get(seq+(QUERY_LIMIST-1)*chatdata_limit);
         }
     }
 
