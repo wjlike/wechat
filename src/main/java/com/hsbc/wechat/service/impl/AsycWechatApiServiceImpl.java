@@ -11,16 +11,14 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class AsycWechatApiServiceImpl implements AsycWechatApiService {
     @Override
-    @Async("wechatExecutor")
-    public AsyncResult<Boolean> get(long seq) {
+    @Async
+    public void get(long seq) {
         try {
             WeChatAPITemplate template = new WeChatAPITemplate();
             template.getChatData(seq);
             template.DestroySdk();
         }catch (Exception e){
             log.error("GET CHAT DATA SERVICE ERROR:{}"+e.getMessage());
-            return new AsyncResult<Boolean>(false);
         }
-        return new AsyncResult<Boolean>(true);
     }
 }
