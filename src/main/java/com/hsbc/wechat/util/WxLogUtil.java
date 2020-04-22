@@ -158,7 +158,7 @@ public class WxLogUtil {
                     JSONObject jsonObj = JSONObject.parseObject(returnStr);
                     logbean.setErrCode(jsonObj.getString("errcode"));
                     logbean.setErrMsg(jsonObj.getString("errmsg"));
-                    JSONArray chatDatas = jsonObj.getJSONArray("chatDatas");
+                    JSONArray chatDatas = jsonObj.getJSONArray("chatdata");
                     int rows = (chatDatas == null ? 0 : chatDatas.size());
                     if (rows > 0) {
                         //认为最后一条数据的seq是最大的，如果不是，要修改为循环判断
