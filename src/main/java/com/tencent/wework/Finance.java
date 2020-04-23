@@ -1,6 +1,6 @@
 package com.tencent.wework;
 
-/* sdk·µ»ØÊı¾İ
+/* sdkè¿”å›æ•°æ®
 typedef struct Slice_t {
     char* buf;
     int len;
@@ -19,99 +19,99 @@ public class Finance {
     public native static long NewSdk();
 
 	/**
-	 * ³õÊ¼»¯º¯Êı
-	 * ReturnÖµ=0±íÊ¾¸ÃAPIµ÷ÓÃ³É¹¦
+	 * åˆå§‹åŒ–å‡½æ•°
+	 * Returnå€¼=0è¡¨ç¤ºè¯¥APIè°ƒç”¨æˆåŠŸ
 	 *
-	 * @param [in]  sdk			NewSdk·µ»ØµÄsdkÖ¸Õë
-	 * @param [in]  corpid      µ÷ÓÃÆóÒµµÄÆóÒµid£¬ÀıÈç£ºwwd08c8exxxx5ab44d£¬¿ÉÒÔÔÚÆóÒµÎ¢ĞÅ¹ÜÀí¶Ë--ÎÒµÄÆóÒµ--ÆóÒµĞÅÏ¢²é¿´
-	 * @param [in]  secret		ÁÄÌìÄÚÈİ´æµµµÄSecret£¬¿ÉÒÔÔÚÆóÒµÎ¢ĞÅ¹ÜÀí¶Ë--¹ÜÀí¹¤¾ß--ÁÄÌìÄÚÈİ´æµµ²é¿´
+	 * @param [in]  sdk			NewSdkè¿”å›çš„sdkæŒ‡é’ˆ
+	 * @param [in]  corpid      è°ƒç”¨ä¼ä¸šçš„ä¼ä¸šidï¼Œä¾‹å¦‚ï¼šwwd08c8exxxx5ab44dï¼Œå¯ä»¥åœ¨ä¼ä¸šå¾®ä¿¡ç®¡ç†ç«¯--æˆ‘çš„ä¼ä¸š--ä¼ä¸šä¿¡æ¯æŸ¥çœ‹
+	 * @param [in]  secret		èŠå¤©å†…å®¹å­˜æ¡£çš„Secretï¼Œå¯ä»¥åœ¨ä¼ä¸šå¾®ä¿¡ç®¡ç†ç«¯--ç®¡ç†å·¥å…·--èŠå¤©å†…å®¹å­˜æ¡£æŸ¥çœ‹
 	 *
 	 *
-	 * @return ·µ»ØÊÇ·ñ³õÊ¼»¯³É¹¦
-	 *      0   - ³É¹¦
-	 *      !=0 - Ê§°Ü
+	 * @return è¿”å›æ˜¯å¦åˆå§‹åŒ–æˆåŠŸ
+	 *      0   - æˆåŠŸ
+	 *      !=0 - å¤±è´¥
 	 */
     public native static int Init(long sdk, String corpid, String secret);
 
 	/**
-	 * À­È¡ÁÄÌì¼ÇÂ¼º¯Êı
-	 * ReturnÖµ=0±íÊ¾¸ÃAPIµ÷ÓÃ³É¹¦
+	 * æ‹‰å–èŠå¤©è®°å½•å‡½æ•°
+	 * Returnå€¼=0è¡¨ç¤ºè¯¥APIè°ƒç”¨æˆåŠŸ
 	 *
 	 *
-	 * @param [in]  sdk				NewSdk·µ»ØµÄsdkÖ¸Õë
-	 * @param [in]  seq				´ÓÖ¸¶¨µÄseq¿ªÊ¼À­È¡ÏûÏ¢£¬×¢ÒâµÄÊÇ·µ»ØµÄÏûÏ¢´Óseq+1¿ªÊ¼·µ»Ø£¬seqÎªÖ®Ç°½Ó¿Ú·µ»ØµÄ×î´óseqÖµ¡£Ê×´ÎÊ¹ÓÃÇëÊ¹ÓÃseq:0
-	 * @param [in]  limit			Ò»´ÎÀ­È¡µÄÏûÏ¢ÌõÊı£¬×î´óÖµ1000Ìõ£¬³¬¹ı1000Ìõ»á·µ»Ø´íÎó
-	 * @param [in]  proxy			Ê¹ÓÃ´úÀíµÄÇëÇó£¬ĞèÒª´«Èë´úÀíµÄÁ´½Ó¡£Èç£ºsocks5://10.0.0.1:8081 »òÕß http://10.0.0.1:8081
-	 * @param [in]  passwd			´úÀíÕËºÅÃÜÂë£¬ĞèÒª´«Èë´úÀíµÄÕËºÅÃÜÂë¡£Èç user_name:passwd_123
-	 * @param [out] chatDatas		·µ»Ø±¾´ÎÀ­È¡ÏûÏ¢µÄÊı¾İ£¬slice½á¹¹Ìå.ÄÚÈİ°üÀ¨errcode/errmsg£¬ÒÔ¼°Ã¿ÌõÏûÏ¢ÄÚÈİ¡£
+	 * @param [in]  sdk				NewSdkè¿”å›çš„sdkæŒ‡é’ˆ
+	 * @param [in]  seq				ä»æŒ‡å®šçš„seqå¼€å§‹æ‹‰å–æ¶ˆæ¯ï¼Œæ³¨æ„çš„æ˜¯è¿”å›çš„æ¶ˆæ¯ä»seq+1å¼€å§‹è¿”å›ï¼Œseqä¸ºä¹‹å‰æ¥å£è¿”å›çš„æœ€å¤§seqå€¼ã€‚é¦–æ¬¡ä½¿ç”¨è¯·ä½¿ç”¨seq:0
+	 * @param [in]  limit			ä¸€æ¬¡æ‹‰å–çš„æ¶ˆæ¯æ¡æ•°ï¼Œæœ€å¤§å€¼1000æ¡ï¼Œè¶…è¿‡1000æ¡ä¼šè¿”å›é”™è¯¯
+	 * @param [in]  proxy			ä½¿ç”¨ä»£ç†çš„è¯·æ±‚ï¼Œéœ€è¦ä¼ å…¥ä»£ç†çš„é“¾æ¥ã€‚å¦‚ï¼šsocks5://10.0.0.1:8081 æˆ–è€… http://10.0.0.1:8081
+	 * @param [in]  passwd			ä»£ç†è´¦å·å¯†ç ï¼Œéœ€è¦ä¼ å…¥ä»£ç†çš„è´¦å·å¯†ç ã€‚å¦‚ user_name:passwd_123
+	 * @param [out] chatDatas		è¿”å›æœ¬æ¬¡æ‹‰å–æ¶ˆæ¯çš„æ•°æ®ï¼Œsliceç»“æ„ä½“.å†…å®¹åŒ…æ‹¬errcode/errmsgï¼Œä»¥åŠæ¯æ¡æ¶ˆæ¯å†…å®¹ã€‚
 
 
 	 *
-	 * @return ·µ»ØÊÇ·ñµ÷ÓÃ³É¹¦
-	 *      0   - ³É¹¦
-	 *      !=0 - Ê§°Ü
+	 * @return è¿”å›æ˜¯å¦è°ƒç”¨æˆåŠŸ
+	 *      0   - æˆåŠŸ
+	 *      !=0 - å¤±è´¥
 	 */
     public native static int GetChatData(long sdk, long seq, long limit, String proxy, String passwd, long timeout, long chatData);
 
 	/**
-	 * À­È¡Ã½ÌåÏûÏ¢º¯Êı
-	 * ReturnÖµ=0±íÊ¾¸ÃAPIµ÷ÓÃ³É¹¦
+	 * æ‹‰å–åª’ä½“æ¶ˆæ¯å‡½æ•°
+	 * Returnå€¼=0è¡¨ç¤ºè¯¥APIè°ƒç”¨æˆåŠŸ
 	 *
 	 *
-	 * @param [in]  sdk				NewSdk·µ»ØµÄsdkÖ¸Õë
-	 * @param [in]  sdkFileid		´ÓGetChatData·µ»ØµÄÁÄÌìÏûÏ¢ÖĞ£¬Ã½ÌåÏûÏ¢°üÀ¨µÄsdkfileid
-	 * @param [in]  proxy			Ê¹ÓÃ´úÀíµÄÇëÇó£¬ĞèÒª´«Èë´úÀíµÄÁ´½Ó¡£Èç£ºsocks5://10.0.0.1:8081 »òÕß http://10.0.0.1:8081
-	 * @param [in]  passwd			´úÀíÕËºÅÃÜÂë£¬ĞèÒª´«Èë´úÀíµÄÕËºÅÃÜÂë¡£Èç user_name:passwd_123
-	 * @param [in]  indexbuf		Ã½ÌåÏûÏ¢·ÖÆ¬À­È¡£¬ĞèÒªÌîÈëÃ¿´ÎÀ­È¡µÄË÷ÒıĞÅÏ¢¡£Ê×´Î²»ĞèÒªÌîĞ´£¬Ä¬ÈÏÀ­È¡512k£¬ºóĞøÃ¿´Îµ÷ÓÃÖ»ĞèÒª½«ÉÏ´Îµ÷ÓÃ·µ»ØµÄoutindexbufÌîÈë¼´¿É¡£
-	 * @param [out] media_data		·µ»Ø±¾´ÎÀ­È¡µÄÃ½ÌåÊı¾İ.MediaData½á¹¹Ìå.ÄÚÈİ°üÀ¨data(Êı¾İÄÚÈİ)/outindexbuf(ÏÂ´ÎË÷Òı)/is_finish(À­È¡Íê³É±ê¼Ç)
+	 * @param [in]  sdk				NewSdkè¿”å›çš„sdkæŒ‡é’ˆ
+	 * @param [in]  sdkFileid		ä»GetChatDataè¿”å›çš„èŠå¤©æ¶ˆæ¯ä¸­ï¼Œåª’ä½“æ¶ˆæ¯åŒ…æ‹¬çš„sdkfileid
+	 * @param [in]  proxy			ä½¿ç”¨ä»£ç†çš„è¯·æ±‚ï¼Œéœ€è¦ä¼ å…¥ä»£ç†çš„é“¾æ¥ã€‚å¦‚ï¼šsocks5://10.0.0.1:8081 æˆ–è€… http://10.0.0.1:8081
+	 * @param [in]  passwd			ä»£ç†è´¦å·å¯†ç ï¼Œéœ€è¦ä¼ å…¥ä»£ç†çš„è´¦å·å¯†ç ã€‚å¦‚ user_name:passwd_123
+	 * @param [in]  indexbuf		åª’ä½“æ¶ˆæ¯åˆ†ç‰‡æ‹‰å–ï¼Œéœ€è¦å¡«å…¥æ¯æ¬¡æ‹‰å–çš„ç´¢å¼•ä¿¡æ¯ã€‚é¦–æ¬¡ä¸éœ€è¦å¡«å†™ï¼Œé»˜è®¤æ‹‰å–512kï¼Œåç»­æ¯æ¬¡è°ƒç”¨åªéœ€è¦å°†ä¸Šæ¬¡è°ƒç”¨è¿”å›çš„outindexbufå¡«å…¥å³å¯ã€‚
+	 * @param [out] media_data		è¿”å›æœ¬æ¬¡æ‹‰å–çš„åª’ä½“æ•°æ®.MediaDataç»“æ„ä½“.å†…å®¹åŒ…æ‹¬data(æ•°æ®å†…å®¹)/outindexbuf(ä¸‹æ¬¡ç´¢å¼•)/is_finish(æ‹‰å–å®Œæˆæ ‡è®°)
 
 	 *
-	 * @return ·µ»ØÊÇ·ñµ÷ÓÃ³É¹¦
-	 *      0   - ³É¹¦
-	 *      !=0 - Ê§°Ü
+	 * @return è¿”å›æ˜¯å¦è°ƒç”¨æˆåŠŸ
+	 *      0   - æˆåŠŸ
+	 *      !=0 - å¤±è´¥
 	 */
     public native static int GetMediaData(long sdk, String indexbuf, String sdkField, String proxy, String passwd, long timeout, long mediaData);
 
     /**
-     * @brief ½âÎöÃÜÎÄ
-     * @param [in]  encrypt_key, getchatdata·µ»ØµÄencrypt_key
-     * @param [in]  encrypt_msg, getchatdata·µ»ØµÄcontent
-     * @param [out] msg, ½âÃÜµÄÏûÏ¢Ã÷ÎÄ
-	 * @return ·µ»ØÊÇ·ñµ÷ÓÃ³É¹¦
-	 *      0   - ³É¹¦
-	 *      !=0 - Ê§°Ü
+     * @brief è§£æå¯†æ–‡
+     * @param [in]  encrypt_key, getchatdataè¿”å›çš„encrypt_key
+     * @param [in]  encrypt_msg, getchatdataè¿”å›çš„content
+     * @param [out] msg, è§£å¯†çš„æ¶ˆæ¯æ˜æ–‡
+	 * @return è¿”å›æ˜¯å¦è°ƒç”¨æˆåŠŸ
+	 *      0   - æˆåŠŸ
+	 *      !=0 - å¤±è´¥
      */
     public native static int DecryptData(long sdk, String encrypt_key, String encrypt_msg, long msg);
 
     public native static void DestroySdk(long sdk);
     public native static long NewSlice();
     /**
-     * @brief ÊÍ·Åslice£¬ºÍNewSlice³É¶ÔÊ¹ÓÃ
+     * @brief é‡Šæ”¾sliceï¼Œå’ŒNewSliceæˆå¯¹ä½¿ç”¨
      * @return
      */
     public native static void FreeSlice(long slice);
 
     /**
-     * @brief »ñÈ¡sliceÄÚÈİ
-     * @return ÄÚÈİ
+     * @brief è·å–sliceå†…å®¹
+     * @return å†…å®¹
      */
     public native static String GetContentFromSlice(long slice);
 
     /**
-     * @brief »ñÈ¡sliceÄÚÈİ³¤¶È
-     * @return ÄÚÈİ
+     * @brief è·å–sliceå†…å®¹é•¿åº¦
+     * @return å†…å®¹
      */
     public native static int GetSliceLen(long slice);
     public native static long NewMediaData();
     public native static void FreeMediaData(long mediaData);
 
     /**
-     * @brief »ñÈ¡mediadata outindex
+     * @brief è·å–mediadata outindex
      * @return outindex
      */
     public native static String GetOutIndexBuf(long mediaData);
     /**
-     * @brief »ñÈ¡mediadata dataÊı¾İ
+     * @brief è·å–mediadata dataæ•°æ®
      * @return data
      */
     public native static byte[] GetData(long mediaData);
@@ -119,8 +119,8 @@ public class Finance {
     public native static int GetDataLen(long mediaData);
 
     /**
-     * @brief ÅĞ¶ÏmediadataÊÇ·ñ½áÊø
-     * @return 1Íê³É¡¢0Î´Íê³É
+     * @brief åˆ¤æ–­mediadataæ˜¯å¦ç»“æŸ
+     * @return 1å®Œæˆã€0æœªå®Œæˆ
      */
     public native static int IsMediaDataFinish(long mediaData);
 
