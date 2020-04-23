@@ -5,6 +5,7 @@ import com.hsbc.wechat.bean.wechat.ChatData;
 import com.hsbc.wechat.bean.wechat.ChatInfo;
 import com.hsbc.wechat.bean.wechat.ContentInfo;
 import com.hsbc.wechat.config.BussinessConfig;
+import com.hsbc.wechat.util.AESKeyUtil;
 import com.hsbc.wechat.util.WxLogUtil;
 import com.hsbc.wechat.util.FileUtil;
 import com.tencent.wework.Finance;
@@ -141,20 +142,30 @@ public class WeChatAPITemplate extends Finance{
         List<ChatData> chatDatas = chatInfo.getChatData();
         chatDatas.forEach(chatData -> {
             try {
-                byte[] decode = Base64.getDecoder().decode(priKey);
-                PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(decode);
-                KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-                PrivateKey privateKey = keyFactory.generatePrivate(keySpec);
-
-                byte[] contentbyte = Base64.getDecoder().decode(chatData.getEncrypt_random_key());
+                //重新解密
+                PrivateKey privateKey = AESKeyUtil.getPrivateKey(priKey);
+                //RSA/ECB/PKCS1Padding
                 Cipher cipher = Cipher.getInstance("RSA");
-                cipher.init(Cipher.DECRYPT_MODE,privateKey);
+                cipher.init(Cipher.DECRYPT_MODE, privateKey);
 
-                byte[] decodeContent = cipher.doFinal(contentbyte);
-                String contentKey = new String(decodeContent);
+                byte[] randomkeybyte = Base64.getDecoder().decode(chatData.getEncrypt_random_key());
+                byte[] finalrandomkeybyte = cipher.doFinal(randomkeybyte);
+                String finalrandomkey = new String(finalrandomkeybyte);
+
+//                byte[] keyBytes = Base64.getDecoder().decode(priKey);
+//                PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(keyBytes);
+//                KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+//                PrivateKey privateKey = keyFactory.generatePrivate(keySpec);
+//
+//                byte[] contentbyte = Base64.getDecoder().decode(chatData.getEncrypt_random_key());
+//                Cipher cipher = Cipher.getInstance("RSA");
+//                cipher.init(Cipher.DECRYPT_MODE,privateKey);
+//
+//                byte[] decodeContent = cipher.doFinal(contentbyte);
+//                String contentKey = new String(decodeContent);
 
                 String encrypt_chat_msg = chatData.getEncrypt_chat_msg();
-                ContentInfo contentInfo = DecryptData(contentKey,encrypt_chat_msg);
+                ContentInfo contentInfo = DecryptData(finalrandomkey,encrypt_chat_msg);
 
                 generateContentInfo(contentInfo,chatData.getSeq());
 

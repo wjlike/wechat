@@ -3,15 +3,12 @@ package com.hsbc.wechat.service.impl;
 import com.hsbc.wechat.config.BussinessConfig;
 import com.hsbc.wechat.service.WeChatContentService;
 import com.hsbc.wechat.service.WechatApiService;
+import com.hsbc.wechat.tempalte.WeChatAPITemplate;
 import com.hsbc.wechat.util.FileUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileReader;
 
 @Slf4j
 @Service
@@ -40,6 +37,14 @@ public class WeChatContentServiceImpl implements WeChatContentService {
 
         }
 
+    }
+
+    @Override
+    public void test() {
+        long seq = getLocatSeq();
+        WeChatAPITemplate template = new WeChatAPITemplate();
+        template.getChatData(seq);
+        template.DestroySdk();
     }
 
     /**
