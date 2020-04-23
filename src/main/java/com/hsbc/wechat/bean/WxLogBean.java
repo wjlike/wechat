@@ -50,7 +50,7 @@ public class WxLogBean {
 		sb.append(split);
 		sb.append("startSeq");
 		sb.append(split);
-		sb.append("makSeq");
+		sb.append("maxSeq");
 		sb.append(split);
 		sb.append("sdkFileId");
 		sb.append(split);
