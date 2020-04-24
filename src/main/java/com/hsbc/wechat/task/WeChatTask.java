@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 public class WeChatTask {
     @Autowired
     private WeChatContentService weChatContentService;
-    @Scheduled(cron = "${wechat.corn}")
+   // @Scheduled(cron = "${wechat.corn}")
     public void doWeChatContentTask(){
         log.info("START TO WECHAT TASK");
         try {

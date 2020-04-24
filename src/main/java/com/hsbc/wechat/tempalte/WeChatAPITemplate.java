@@ -12,14 +12,15 @@ import com.tencent.wework.Finance;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 
 import javax.crypto.Cipher;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.security.KeyFactory;
+import java.io.FileWriter;
 import java.security.PrivateKey;
-import java.security.spec.PKCS8EncodedKeySpec;
 import java.text.SimpleDateFormat;
 import java.util.Base64;
 import java.util.Date;
@@ -227,18 +228,19 @@ public class WeChatAPITemplate extends Finance{
         String month = strNow[1];
         String day = strNow[2];
         outputFilePath = basefilepath + "/" + year + "/" + month + "/" + day + "/content/" + contentInfo.getMsgType() + "/" + seq;
-        FileOutputStream outputStream = null;
+        FileWriter fileWriter = null;
         try {
             File file = new File(outputFilePath);
-            if(!file.exists()){file.mkdirs();}
-            outputStream = new FileOutputStream(file);
-            outputStream.write(JSONObject.toJSONString(contentInfo).getBytes());
+            if(!file.exists()){file.createNewFile();}
+            fileWriter =new FileWriter(file, true);
+            fileWriter.write(JSONObject.toJSONString(contentInfo));
+            fileWriter.flush();
         }catch ( Exception e){
             e.printStackTrace();
         }finally {
-            if(outputStream!=null){
+            if(fileWriter!=null){
                 try {
-                    outputStream.close();
+                    fileWriter.close();
                 }catch (Exception e){
                     e.printStackTrace();
                 }

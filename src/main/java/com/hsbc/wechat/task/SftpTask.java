@@ -19,7 +19,7 @@ public class SftpTask {
     private SftpService sftpService;
 
     //@Scheduled(cron = "${wechat.cornsftp}")
-    @Scheduled(cron = "0 * * * * ?")
+    //@Scheduled(cron = "0 * * * * ?")
     public void upload() {
         System.out.println("start task");
         String subPath = "2020";

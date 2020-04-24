@@ -125,6 +125,6 @@ public class Finance {
     public native static int IsMediaDataFinish(long mediaData);
 
     static {
-        System.loadLibrary("WeWorkFinanceSdk");
+        System.loadLibrary("WeWorkFinanceSdk_Java");
     }
 }
