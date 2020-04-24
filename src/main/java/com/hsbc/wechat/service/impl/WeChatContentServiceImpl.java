@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 public class WeChatContentServiceImpl implements WeChatContentService {
     @Autowired
     WechatApiService wechatApiService;
+
     @Override
     public void doWeChatContent() {
 
@@ -40,8 +41,8 @@ public class WeChatContentServiceImpl implements WeChatContentService {
     }
 
     @Override
-    public void test() {
-        long seq = getLocatSeq();
+    public void test(long seq) {
+       // long seq = getLocatSeq();
         WeChatAPITemplate template = new WeChatAPITemplate();
         template.getChatData(seq);
         template.DestroySdk();

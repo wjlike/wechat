@@ -12,14 +12,15 @@ import com.tencent.wework.Finance;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 
 import javax.crypto.Cipher;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.security.KeyFactory;
+import java.io.FileWriter;
 import java.security.PrivateKey;
-import java.security.spec.PKCS8EncodedKeySpec;
 import java.text.SimpleDateFormat;
 import java.util.Base64;
 import java.util.Date;
@@ -94,7 +95,7 @@ public class WeChatAPITemplate extends Finance{
      * @param seq 本次请求获取消息记录开始的seq值。默认从0开始，非首次使用上次企业微信返回的最大seq。允许从任意seq重入拉取。Uint64类型，范围0-pow(2,64)-1
      */
     public void getChatData(long seq){
-        log.info("Start get ChatDate ! seq:{}",seq);
+        log.info("Start get ChatDate  seq:{}",seq);
         long startTimeMillis = System.currentTimeMillis();
         seq = Math.max(seq, 0);
         ChatInfo chatInfo = null;
@@ -185,12 +186,12 @@ public class WeChatAPITemplate extends Finance{
      */
     private ContentInfo DecryptData(String encrypt_key, String encrypt_msg){
         long startTimeMillis = System.currentTimeMillis();
-        long msg = 0;
+        long msg = NewSlice();
         int ret = DecryptData(sdk,encrypt_key,encrypt_msg,msg);
         if (ret != 0) {
             //  log.error("SDK 解密失败",ret);
             FreeSlice(msg);
-            //记录微信请求日志
+            //记录微信请求日parseContentToLocal志
             RuntimeException e = new RuntimeException("SDK WeChat DecryptData Error: "+ret);
             WxLogUtil.writeLog(e, startTimeMillis);
             throw e;
@@ -226,19 +227,22 @@ public class WeChatAPITemplate extends Finance{
         String year = strNow[0];
         String month = strNow[1];
         String day = strNow[2];
-        outputFilePath = basefilepath + "/" + year + "/" + month + "/" + day + "/content/" + contentInfo.getMsgType() + "/" + seq;
-        FileOutputStream outputStream = null;
+        outputFilePath = basefilepath + "/" + year + "/" + month + "/" + day + "/content/" + contentInfo.getMsgType() + "/" ;
+        log.info("parseContentToLocal文件路径:{}",outputFilePath);
+        FileWriter fileWriter = null;
         try {
-            File file = new File(outputFilePath);
-            if(!file.exists()){file.mkdirs();}
-            outputStream = new FileOutputStream(file);
-            outputStream.write(JSONObject.toJSONString(contentInfo).getBytes());
+            FileUtil.CreateDir(outputFilePath);
+            File file = new File(outputFilePath+seq+".json");
+            if(!file.exists()){file.createNewFile();}
+            fileWriter =new FileWriter(file, true);
+            fileWriter.write(JSONObject.toJSONString(contentInfo));
+            fileWriter.flush();
         }catch ( Exception e){
             e.printStackTrace();
         }finally {
-            if(outputStream!=null){
+            if(fileWriter!=null){
                 try {
-                    outputStream.close();
+                    fileWriter.close();
                 }catch (Exception e){
                     e.printStackTrace();
                 }
@@ -267,7 +271,7 @@ public class WeChatAPITemplate extends Finance{
             outputFilePath = basefilepath + "/" + year + "/" + month + "/" + day + "/media/" + msgType + "/" + seq;
         }
 
-        log.info("文件路径:" + outputFilePath);
+        log.info("handleMediaData文件路径:" + outputFilePath);
         File outputFile = new File(outputFilePath);
 
         //如果已经存在文件,清空原有文件以便重新追加
