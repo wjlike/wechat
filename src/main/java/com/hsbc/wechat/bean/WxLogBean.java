@@ -29,6 +29,8 @@ public class WxLogBean {
 	private String fileName;
 	//日志记录时间
 	private String makeTime;
+	//备注
+	private String remark;
 
 	//获取表格格式的表头，字段之间通过\t分隔
 	public String getTableHead() {
@@ -57,6 +59,8 @@ public class WxLogBean {
 		sb.append("fileName");
 		sb.append(split);
 		sb.append("makeTime");
+		sb.append(split);
+		sb.append("remark");
 		return sb.toString();
 	}
 
@@ -87,102 +91,9 @@ public class WxLogBean {
 		sb.append(getFileName());
 		sb.append(split);
 		sb.append(getMakeTime());
+		sb.append(split);
+		sb.append(getRemark());
 		return sb.toString();
 	}
 
-	public String getId() {
-		return id;
-	}
-
-	public void setId(String id) {
-		this.id = id;
-	}
-
-	public String getErrCode() {
-		return errCode;
-	}
-
-	public void setErrCode(String errCode) {
-		this.errCode = errCode;
-	}
-
-	public String getErrMsg() {
-		return errMsg;
-	}
-
-	public void setErrMsg(String errMsg) {
-		this.errMsg = errMsg;
-	}
-
-	public long getStartTimeMillis() {
-		return startTimeMillis;
-	}
-
-	public void setStartTimeMillis(long startTimeMillis) {
-		this.startTimeMillis = startTimeMillis;
-	}
-
-	public long getEndTimeMillis() {
-		return endTimeMillis;
-	}
-
-	public void setEndTimeMillis(long endTimeMillis) {
-		this.endTimeMillis = endTimeMillis;
-	}
-
-	public long getCostTimeMillis() {
-		return costTimeMillis;
-	}
-
-	public void setCostTimeMillis(long costTimeMillis) {
-		this.costTimeMillis = costTimeMillis;
-	}
-
-	public long getDataRows() {
-		return dataRows;
-	}
-
-	public void setDataRows(long dataRows) {
-		this.dataRows = dataRows;
-	}
-
-	public long getStartSeq() {
-		return startSeq;
-	}
-
-	public void setStartSeq(long startSeq) {
-		this.startSeq = startSeq;
-	}
-
-	public long getMaxSeq() {
-		return maxSeq;
-	}
-
-	public void setMaxSeq(long maxSeq) {
-		this.maxSeq = maxSeq;
-	}
-
-	public String getSdkFileId() {
-		return sdkFileId;
-	}
-
-	public void setSdkFileId(String sdkFileId) {
-		this.sdkFileId = sdkFileId;
-	}
-
-	public String getFileName() {
-		return fileName;
-	}
-
-	public void setFileName(String fileName) {
-		this.fileName = fileName;
-	}
-
-	public String getMakeTime() {
-		return makeTime;
-	}
-
-	public void setMakeTime(String makeTime) {
-		this.makeTime = makeTime;
-	}
 }

@@ -99,8 +99,8 @@ public class WxLogUtil {
      * @param startTimeMillis 请求的开始时间System.currentTimeMills
      */
     @Async
-    public static void writeLog(Object result, long startTimeMillis) {
-        writeLog(result, startTimeMillis, 0, null);
+    public static void writeLog(Object result, String remark, long startTimeMillis) {
+        writeLog(result, remark, startTimeMillis, 0, null);
     }
 
     /**
@@ -110,8 +110,8 @@ public class WxLogUtil {
      * @param seq 如果请求参数有seq，请传实际的seq，否则可以传0
      */
     @Async
-    public static void writeLog(Object result, long startTimeMillis, long seq) {
-        writeLog(result, startTimeMillis, seq, null);
+    public static void writeLog(Object result, String remark, long startTimeMillis, long seq) {
+        writeLog(result, remark, startTimeMillis, seq, null);
     }
 
     /**
@@ -121,8 +121,8 @@ public class WxLogUtil {
      * @param sdkFileId 如果请求参数有文件id，请传实际的sdkFileId，否则可以传null
      */
     @Async
-    public static void writeLog(Object result, long startTimeMillis, String sdkFileId) {
-        writeLog(result, startTimeMillis, 0, sdkFileId);
+    public static void writeLog(Object result, String remark, long startTimeMillis, String sdkFileId) {
+        writeLog(result, remark, startTimeMillis, 0, sdkFileId);
     }
 
     /**
@@ -133,7 +133,7 @@ public class WxLogUtil {
      * @param sdkFileId 如果请求参数有文件id，请传实际的sdkFileId，否则可以传null
      */
     @Async
-    public static void writeLog(Object result, long startTimeMillis, long seq, String sdkFileId) {
+    public static void writeLog(Object result, String remark, long startTimeMillis, long seq, String sdkFileId) {
         //初始化日志对象
         WxLogBean logbean = new WxLogBean();
         logbean.setStartTimeMillis(startTimeMillis);
@@ -143,6 +143,7 @@ public class WxLogUtil {
         logbean.setSdkFileId(sdkFileId);
         logbean.setErrCode("0");
         logbean.setErrMsg("ok");
+        logbean.setRemark(remark);
         //出现异常
         if (result instanceof Exception || result instanceof Throwable) {
             logbean.setErrCode("1");

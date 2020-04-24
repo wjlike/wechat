@@ -106,12 +106,12 @@ public class WeChatAPITemplate extends Finance{
             // log.error("getchatdata ret :()",ret);
             RuntimeException e = new RuntimeException("get WeChat Content Error: "+ret);
             //记录微信请求日志
-            WxLogUtil.writeLog(e, startTimeMillis, seq);
+            WxLogUtil.writeLog(e, "下载聊天记录", startTimeMillis, seq);
             throw new RuntimeException(e);
         }
         String data = GetContentFromSlice(slice);
         //记录微信请求日志
-        WxLogUtil.writeLog(data, startTimeMillis, seq);
+        WxLogUtil.writeLog(data, "下载聊天记录", startTimeMillis, seq);
 
         chatInfo = JSONObject.parseObject(data,ChatInfo.class);
 
@@ -193,13 +193,13 @@ public class WeChatAPITemplate extends Finance{
             FreeSlice(msg);
             //记录微信请求日parseContentToLocal志
             RuntimeException e = new RuntimeException("SDK WeChat DecryptData Error: "+ret);
-            WxLogUtil.writeLog(e, startTimeMillis);
+            WxLogUtil.writeLog(e, "聊天记录解密", startTimeMillis);
             throw e;
         }
         String data = GetContentFromSlice(msg);
         FreeSlice(msg);
         //记录微信请求日志
-        WxLogUtil.writeLog(data, startTimeMillis);
+        WxLogUtil.writeLog(data, "聊天记录解密", startTimeMillis);
         return JSONObject.parseObject(data,ContentInfo.class);
 
     }
@@ -293,7 +293,7 @@ public class WeChatAPITemplate extends Finance{
                 outputStream.close();
             } catch (Exception e) {
                 //记录微信请求日志
-                WxLogUtil.writeLog(e, startTimeMillis, sdkField);
+                WxLogUtil.writeLog(e, "下载媒体文件", startTimeMillis, sdkField);
                 throw new RuntimeException("导出媒体文件失败:" + e.getMessage());
             }
 
@@ -306,7 +306,7 @@ public class WeChatAPITemplate extends Finance{
             }
         }
         //记录微信请求日志
-        WxLogUtil.writeLog(outputFilePath, startTimeMillis, sdkField);
+        WxLogUtil.writeLog(outputFilePath, "下载媒体文件", startTimeMillis, sdkField);
         return outputFilePath;
 
     }
