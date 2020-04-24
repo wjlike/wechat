@@ -168,7 +168,10 @@ public class WxLogUtil {
                     }
                     logbean.setDataRows(rows);
                 } catch(Exception e) {
-                    e.printStackTrace();
+                    //解析json异常，说明微信返回的不是一个json，直接将返回信息写入日志中即可
+                    logbean.setErrCode("0");
+                    logbean.setErrMsg(returnStr);
+                    //e.printStackTrace();
                 }
             }
         }
