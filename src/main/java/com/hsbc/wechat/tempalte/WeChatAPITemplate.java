@@ -227,10 +227,12 @@ public class WeChatAPITemplate extends Finance{
         String year = strNow[0];
         String month = strNow[1];
         String day = strNow[2];
-        outputFilePath = basefilepath + "/" + year + "/" + month + "/" + day + "/content/" + contentInfo.getMsgType() + "/" + seq;
+        outputFilePath = basefilepath + "/" + year + "/" + month + "/" + day + "/content/" + contentInfo.getMsgType() + "/" ;
+        log.info("parseContentToLocal文件路径:{}",outputFilePath);
         FileWriter fileWriter = null;
         try {
-            File file = new File(outputFilePath);
+            FileUtil.CreateDir(outputFilePath);
+            File file = new File(outputFilePath+seq+".json");
             if(!file.exists()){file.createNewFile();}
             fileWriter =new FileWriter(file, true);
             fileWriter.write(JSONObject.toJSONString(contentInfo));
@@ -269,7 +271,7 @@ public class WeChatAPITemplate extends Finance{
             outputFilePath = basefilepath + "/" + year + "/" + month + "/" + day + "/media/" + msgType + "/" + seq;
         }
 
-        log.info("文件路径:" + outputFilePath);
+        log.info("handleMediaData文件路径:" + outputFilePath);
         File outputFile = new File(outputFilePath);
 
         //如果已经存在文件,清空原有文件以便重新追加
