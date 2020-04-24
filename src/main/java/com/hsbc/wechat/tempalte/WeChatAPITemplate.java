@@ -95,7 +95,7 @@ public class WeChatAPITemplate extends Finance{
      * @param seq 本次请求获取消息记录开始的seq值。默认从0开始，非首次使用上次企业微信返回的最大seq。允许从任意seq重入拉取。Uint64类型，范围0-pow(2,64)-1
      */
     public void getChatData(long seq){
-        log.info("Start get ChatDate ! seq:{}",seq);
+        log.info("Start get ChatDate  seq:{}",seq);
         long startTimeMillis = System.currentTimeMillis();
         seq = Math.max(seq, 0);
         ChatInfo chatInfo = null;
@@ -186,12 +186,12 @@ public class WeChatAPITemplate extends Finance{
      */
     private ContentInfo DecryptData(String encrypt_key, String encrypt_msg){
         long startTimeMillis = System.currentTimeMillis();
-        long msg = 0;
+        long msg = NewSlice();
         int ret = DecryptData(sdk,encrypt_key,encrypt_msg,msg);
         if (ret != 0) {
             //  log.error("SDK 解密失败",ret);
             FreeSlice(msg);
-            //记录微信请求日志
+            //记录微信请求日parseContentToLocal志
             RuntimeException e = new RuntimeException("SDK WeChat DecryptData Error: "+ret);
             WxLogUtil.writeLog(e, startTimeMillis);
             throw e;
