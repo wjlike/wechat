@@ -116,7 +116,7 @@ public class WeChatAPITemplate extends Finance{
         chatInfo = JSONObject.parseObject(data,ChatInfo.class);
 
         if(chatInfo.getChatData().size()<=0){
-            DestroySdk();
+    
             log.info("No ChatDate ! seq:{}",seq);
             return;
         }
