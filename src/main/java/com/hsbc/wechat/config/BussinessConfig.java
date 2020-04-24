@@ -1,15 +1,14 @@
 package com.hsbc.wechat.config;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Controller;
+import org.springframework.stereotype.Component;
 
-@Controller
+@Component
 public class BussinessConfig {
 
     private static String corpid;
     private static String secret;
     private static String prikey;
-    private static String mediapath;
     private static String downloadpath;
     private static String seqFilepPth;
     private static String logPath;
@@ -26,9 +25,6 @@ public class BussinessConfig {
         return prikey;
     }
 
-    public static String getMediapath() {
-        return mediapath;
-    }
 
     public static String getDownloadpath() {
         return downloadpath;
@@ -52,10 +48,6 @@ public class BussinessConfig {
     @Value("${wechat.prikey}")
     public  void setPrikey(String prikey) {
         BussinessConfig.prikey = prikey;
-    }
-    @Value("${wechat.mediapath}")
-    public  void setMediapath(String mediapath) {
-        BussinessConfig.mediapath = mediapath;
     }
     @Value("${wechat.downloadpath}")
     public  void setDownloadpath(String downloadpath) {

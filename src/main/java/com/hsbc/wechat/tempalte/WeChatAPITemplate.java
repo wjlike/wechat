@@ -87,8 +87,8 @@ public class WeChatAPITemplate extends Finance{
         sdk = NewSdk();
         int status  = Init(sdk, corpid,secret);
         log.info("初始化 status:{} [0-true,!0-false]",status);
-        if(status!=0){DestroySdk();}
-        Assert.isTrue(status == 0 ? true:false,"WeChatAPITemplate 初始化失败 ");
+//        if(status!=0){DestroySdk();}
+//        Assert.isTrue(status == 0 ? true:false,"WeChatAPITemplate 初始化失败 ");
     }
 
     /**
