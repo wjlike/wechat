@@ -227,45 +227,45 @@ public class WeChatAPITemplate extends Finance{
             msgType = contentInfo.getMsgType();
         }
 
-        if (WeChatInfoTypeEnum.TEXT.equals(msgType)) {
-        } else if (WeChatInfoTypeEnum.AGREE.equals(msgType)) {
+        if (WeChatInfoTypeEnum.TEXT.getValue().equals(msgType)) {
+        } else if (WeChatInfoTypeEnum.AGREE.getValue().equals(msgType)) {
 
-        } else if (WeChatInfoTypeEnum.CARD.equals(msgType)) {
+        } else if (WeChatInfoTypeEnum.CARD.getValue().equals(msgType)) {
 
-        } else if (WeChatInfoTypeEnum.EMOTION.equals(msgType)) {
+        } else if (WeChatInfoTypeEnum.EMOTION.getValue().equals(msgType)) {
 
             mediaPath = handleMediaData(contentInfo.getEmotion().getSdkfileid(),msgType,
                     contentInfo.getEmotion().getType() == 1 ? "gif" : "png",seq);
             contentInfo.getEmotion().setUrl(mediaPath);
 
-        } else if (WeChatInfoTypeEnum.FILE.equals(msgType)) {
+        } else if (WeChatInfoTypeEnum.FILE.getValue().equals(msgType)) {
             mediaPath = handleMediaData(contentInfo.getFile().getSdkfileid(),msgType,
                     contentInfo.getFile().getFileext(),seq);
             contentInfo.getFile().setUrl(mediaPath);
-        } else if (WeChatInfoTypeEnum.IMAGE.equals(msgType)) {
+        } else if (WeChatInfoTypeEnum.IMAGE.getValue().equals(msgType)) {
 
             mediaPath = handleMediaData(contentInfo.getImage().getSdkfileid(),msgType,
                     "jpg",seq);
             contentInfo.getImage().setUrl(mediaPath);
 
-        } else if (WeChatInfoTypeEnum.LINK.equals(msgType)) {
+        } else if (WeChatInfoTypeEnum.LINK.getValue().equals(msgType)) {
 
-        } else if (WeChatInfoTypeEnum.LOCATION.equals(msgType)) {
+        } else if (WeChatInfoTypeEnum.LOCATION.getValue().equals(msgType)) {
 
-        } else if (WeChatInfoTypeEnum.REVOKE.equals(msgType)) {
+        } else if (WeChatInfoTypeEnum.REVOKE.getValue().equals(msgType)) {
 
-        } else if (WeChatInfoTypeEnum.VIDEO.equals(msgType)) {
+        } else if (WeChatInfoTypeEnum.VIDEO.getValue().equals(msgType)) {
 
             mediaPath = handleMediaData(contentInfo.getVideo().getSdkfileid(),msgType,
                     null,seq);
             contentInfo.getVideo().setUrl(mediaPath);
 
-        } else if (WeChatInfoTypeEnum.VOICE.equals(msgType)) {
+        } else if (WeChatInfoTypeEnum.VOICE.getValue().equals(msgType)) {
 
             mediaPath = handleMediaData(contentInfo.getVoice().getSdkfileid(),msgType,
                     null,seq);
             contentInfo.getVoice().setUrl(mediaPath);
-        } else if (WeChatInfoTypeEnum.WEAPP.equals(msgType)) {
+        } else if (WeChatInfoTypeEnum.WEAPP.getValue().equals(msgType)) {
 
         } else {
             log.info("不支持的消息类型msgType={}" ,msgType);
