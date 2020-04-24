@@ -157,21 +157,30 @@ public class WxLogUtil {
                 //防止json转换失败而记录不到日志
                 try {
                     JSONObject jsonObj = JSONObject.parseObject(returnStr);
-                    logbean.setErrCode(jsonObj.getString("errcode"));
-                    logbean.setErrMsg(jsonObj.getString("errmsg"));
-                    JSONArray chatDatas = jsonObj.getJSONArray("chatdata");
-                    int rows = (chatDatas == null ? 0 : chatDatas.size());
-                    if (rows > 0) {
-                        //认为最后一条数据的seq是最大的，如果不是，要修改为循环判断
-                        JSONObject chatData = (JSONObject)chatDatas.get(chatDatas.size() - 1);
-                        int seqMax = chatData.getIntValue("seq");
-                        logbean.setMaxSeq(seqMax);
+                    String errCode = jsonObj.getString("errcode");
+                    //聊天记录
+                    if (errCode != null && errCode.length() > 0) {
+                        logbean.setErrCode(jsonObj.getString("errcode"));
+                        logbean.setErrMsg(jsonObj.getString("errmsg"));
+                        JSONArray chatDatas = jsonObj.getJSONArray("chatdata");
+                        int rows = (chatDatas == null ? 0 : chatDatas.size());
+                        if (rows > 0) {
+                            //认为最后一条数据的seq是最大的，如果不是，要修改为循环判断
+                            JSONObject chatData = (JSONObject)chatDatas.get(chatDatas.size() - 1);
+                            int seqMax = chatData.getIntValue("seq");
+                            logbean.setMaxSeq(seqMax);
+                        }
+                        logbean.setDataRows(rows);
+                    } else { //解密
+                        String msgid = jsonObj.getString("msgid");
+                        String msgtype = jsonObj.getString("msgtype");
+                        if (msgid != null && msgid.length() > 0) {
+                            logbean.setRemark(logbean.getRemark() + " msgtype=" + msgtype + " msgid=" + msgid);
+                        }
+
                     }
-                    logbean.setDataRows(rows);
                 } catch(Exception e) {
-                    //解析json异常，说明微信返回的不是一个json，直接将返回信息写入日志中即可
-                    logbean.setErrCode("0");
-                    logbean.setErrMsg(returnStr);
+                    //解析json异常，说明微信返回的不是一个json，上面已经直接将返回信息写入日志中即可
                     //e.printStackTrace();
                 }
             }

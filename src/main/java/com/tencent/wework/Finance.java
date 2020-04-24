@@ -125,6 +125,24 @@ public class Finance {
     public native static int IsMediaDataFinish(long mediaData);
 
     static {
-        System.load("/home/wechat/libWeWorkFinanceSdk_Java.so");
+    	//windows:
+		//System.loadLibrary("WeWorkFinanceSdk");
+
+    	//Linux:  //System.load("/home/wechat/libWeWorkFinanceSdk_Java.so");
+		String soName = "libWeWorkFinanceSdk_Java.so";
+    	String soPath = Finance.class.getResource("/").getPath();
+		System.out.println("soPath=" + soPath);
+    	//以上得到jar包里面的so文件，执行不了，换成jar包当前同级目录的
+		int idx = soPath.indexOf(".jar!");
+		if (idx != -1) {
+			soPath = soPath.substring(0, idx);
+			soPath = soPath.substring(0, soPath.lastIndexOf("/") + 1) + soName;
+			System.out.println("soPath=" + soPath);
+		}
+		//得到的路径可能以 file:/ 开头
+		soPath = soPath.replace("file:/", "/");
+		System.out.println("soPath=" + soPath);
+        System.load(soPath);
+
     }
 }
