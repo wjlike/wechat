@@ -138,17 +138,19 @@ public class SftpFileUtil {
     }
 
     /**
+     * 不再开放此API，因为记录日志时无法获取文件大小
      * 上传单个文件，以断点续传的方式
      * @param targetPath 上传到的目录，服务器的相对目录
      * @param inputStream 文件流
      * @return 上传是否成功
      * @throws Exception
      */
-    public static boolean uploadFile(String targetPath, InputStream inputStream) throws Exception {
-        return uploadFile(targetPath, inputStream, 2);
-    }
+//    public static boolean uploadFile(String targetPath, InputStream inputStream) throws Exception {
+//        return uploadFile(targetPath, inputStream, 2);
+//    }
 
     /**
+     * 不再开放此API，因为记录日志时无法获取文件大小
      * 上传单个文件
      * @param targetPath 上传到的目录，服务器的相对目录
      * @param inputStream 文件流
@@ -156,37 +158,37 @@ public class SftpFileUtil {
      * @return 上传是否成功
      * @throws Exception
      */
-    public static boolean uploadFile(String targetPath, InputStream inputStream, int mode) throws Exception {
-        ChannelSftp sftp = createSftp();
-        boolean flag = false;
-        try {
-            createDirs(config.getRoot(), sftp);
-            sftp.cd(config.getRoot());
-            logger.info("Change path to {}", config.getRoot());
-
-            int index = targetPath.lastIndexOf("/");
-            String fileDir = targetPath.substring(0, index);
-            String fileName = targetPath.substring(index + 1);
-            boolean dirs = createDirs(fileDir, sftp);
-            if (!dirs) {
-                logger.error("Remote path error. path:{}", targetPath);
-                throw new Exception("Upload File failure");
-            }
-            sftp.put(inputStream, fileName, mode);
-            flag = true;
-        } catch (Exception e) {
-            flag = false;
-            logger.error("Upload file failure. TargetPath: {}", targetPath, e);
-            throw new Exception("Upload File failure");
-        } finally {
-            if (inputStream != null) {
-                inputStream.close();
-            }
-            disconnect(sftp);
-            afterUploadOne(targetPath, flag);
-            return flag;
-        }
-    }
+//    public static boolean uploadFile(String targetPath, InputStream inputStream, int mode) throws Exception {
+//        ChannelSftp sftp = createSftp();
+//        boolean flag = false;
+//        try {
+//            createDirs(config.getRoot(), sftp);
+//            sftp.cd(config.getRoot());
+//            logger.info("Change path to {}", config.getRoot());
+//
+//            int index = targetPath.lastIndexOf("/");
+//            String fileDir = targetPath.substring(0, index);
+//            String fileName = targetPath.substring(index + 1);
+//            boolean dirs = createDirs(fileDir, sftp);
+//            if (!dirs) {
+//                logger.error("Remote path error. path:{}", targetPath);
+//                throw new Exception("Upload File failure");
+//            }
+//            sftp.put(inputStream, fileName, mode);
+//            flag = true;
+//        } catch (Exception e) {
+//            flag = false;
+//            logger.error("Upload file failure. TargetPath: {}", targetPath, e);
+//            throw new Exception("Upload File failure");
+//        } finally {
+//            if (inputStream != null) {
+//                inputStream.close();
+//            }
+//            disconnect(sftp);
+//            afterUploadOne(targetPath, flag);
+//            return flag;
+//        }
+//    }
 
     /**
      * 上传单个文件，以断点续传方式上传
@@ -208,10 +210,11 @@ public class SftpFileUtil {
      * @throws Exception
      */
     public static boolean uploadFile(String targetPath, File file, int mode) throws Exception {
-        return uploadFile(targetPath, new FileInputStream(file), mode);
+        return uploadFile(targetPath, file, mode);
     }
 
     /**
+     * 不再开放此API，因为不方便日志记录，无法获悉文件大小。
      * 上传单个文件，该方法用于批量上传，因此中间不会申请新的sftp连接，也不会关闭连接，
      * 请调用方在批量任务开始时自己申请连接，批量任务结束后主动关闭连接
      * @param sftp sftp服务器的连接
@@ -221,8 +224,57 @@ public class SftpFileUtil {
      * @return 上传是否成功
      * @throws Exception
      */
-    private static boolean uploadFile(ChannelSftp sftp, String targetPath, InputStream inputStream, int mode) throws Exception {
+//    private static boolean uploadFile(ChannelSftp sftp, String targetPath, InputStream inputStream, int mode) throws Exception {
+//        boolean flag = false;
+//        try {
+//            int index = targetPath.lastIndexOf("/");
+//            String fileDir = targetPath.substring(0, index);
+//            String fileName = targetPath.substring(index + 1);
+//            boolean dirs = createDirs(fileDir, sftp);
+//            if (!dirs) {
+//                logger.error("Remote path error. path:{}", targetPath);
+//                throw new Exception("Upload File failure");
+//            }
+//            //切换到目标目录
+//            fileDir = fileDir.startsWith("/") ? fileDir.substring(1) : fileDir;
+//            sftp.cd(fileDir);
+//            sftp.put(inputStream, fileName, mode);
+//            //切换回原目录
+//            int len = fileDir.split("/").length;
+//            String back = "";
+//            for (int i=0; i<len; i++) {
+//                back += "../";
+//            }
+//            sftp.cd(back);
+//            flag = true;
+//        } catch (Exception e) {
+//            flag = false;
+//            logger.error("Upload file failure. TargetPath: {}", targetPath, e);
+//            throw new Exception("Upload File failure");
+//        } finally {
+//            if (inputStream != null) {
+//                inputStream.close();
+//            }
+//            afterUploadOne(targetPath, flag);
+//            return flag;
+//        }
+//    }
+
+    /**
+     * 上传单个文件，该方法用于批量上传，因此中间不会申请新的sftp连接，也不会关闭连接，
+     * 请调用方在批量任务开始时自己申请连接，批量任务结束后主动关闭连接
+     * @param sftp sftp服务器的连接
+     * @param targetPath 上传目录，服务器的相对目录
+     * @param file 待上传的文件
+     * @param mode 上传模式：1-覆盖，2-断点续传，3-追加
+     * @return 上传是否成功
+     * @throws Exception
+     */
+    private static boolean uploadFile(ChannelSftp sftp, String targetPath, File file, int mode) throws Exception {
+        //return uploadFile(sftp, targetPath, new FileInputStream(file), mode);
         boolean flag = false;
+        InputStream inputStream = null;
+        long startTime = System.currentTimeMillis();
         try {
             int index = targetPath.lastIndexOf("/");
             String fileDir = targetPath.substring(0, index);
@@ -235,6 +287,7 @@ public class SftpFileUtil {
             //切换到目标目录
             fileDir = fileDir.startsWith("/") ? fileDir.substring(1) : fileDir;
             sftp.cd(fileDir);
+            inputStream = new FileInputStream(file);
             sftp.put(inputStream, fileName, mode);
             //切换回原目录
             int len = fileDir.split("/").length;
@@ -252,23 +305,10 @@ public class SftpFileUtil {
             if (inputStream != null) {
                 inputStream.close();
             }
-            afterUploadOne(targetPath, flag);
+            long costTime = System.currentTimeMillis() - startTime;
+            afterUploadOne(targetPath, flag, file.length(), costTime);
             return flag;
         }
-    }
-
-    /**
-     * 上传单个文件，该方法用于批量上传，因此中间不会申请新的sftp连接，也不会关闭连接，
-     * 请调用方在批量任务开始时自己申请连接，批量任务结束后主动关闭连接
-     * @param sftp sftp服务器的连接
-     * @param targetPath 上传目录，服务器的相对目录
-     * @param file 待上传的文件
-     * @param mode 上传模式：1-覆盖，2-断点续传，3-追加
-     * @return 上传是否成功
-     * @throws Exception
-     */
-    private static boolean uploadFile(ChannelSftp sftp, String targetPath, File file, int mode) throws Exception {
-        return uploadFile(sftp, targetPath, new FileInputStream(file), mode);
     }
 
     /**
@@ -404,23 +444,13 @@ public class SftpFileUtil {
     }
 
     /**
-     * 单个文件上传完成后的处理，比如记录日志，文件迁移等
-     * @param targetPath SFTP目标地址
-     * @param flag 是否上传成功
-     * @return void
-     */
-    private static void afterUploadOne(String targetPath, boolean flag) {
-        log(targetPath, flag);
-    }
-
-    /**
      * 记录上传日志，并迁移文件
      * @param targetPath SFTP上传的目标地址
      * @param flag 是否上传成功
      * @return void
      */
-    private static void log(String targetPath, boolean flag) {
-        SftpLogUtil.afterUploadOne(targetPath, flag);
+    private static void afterUploadOne(String targetPath, boolean flag, long fileSize, long costTime) {
+        SftpLogUtil.afterUploadOne(targetPath, flag, fileSize, costTime);
     }
 
 }

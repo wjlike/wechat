@@ -19,10 +19,12 @@ public class SftpLogUtil {
     //日志文件文件名前缀，实际的日志文件名形式举例：request_log_20200413.log
     private static final String PRE_LOG_NAME = "sftp_log_";
 
-    public static void afterUploadOne(String path, boolean isSuccess) {
+    public static void afterUploadOne(String path, boolean isSuccess, long fileSize, long costTime) {
         SftpLog sftpLog = new SftpLog();
         sftpLog.setPath(path);
         sftpLog.setSuccessFlag(isSuccess);
+        sftpLog.setFileSize(fileSize);
+        sftpLog.setCostTime(costTime);
         //同步迁移文件
         String srcFilePath = (sftpLog.getLocalRootFilePath() + "/" + path).replace("//", "/");
         String destFilePath = (sftpLog.getLocalBakRootFilePath() + "/" + path).replace("//", "/");
@@ -81,9 +83,12 @@ public class SftpLogUtil {
 //                pw.println(content);
 //                logList.remove(o);
 //            }
+            SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
             while (!logList.isEmpty()) {
                 SftpLog o = logList.poll();
-                content = "date_time: " + sdf.format(new Date()) + "\t is_success: " + o.isSuccessFlag() + "\t to_path: /" + o.getPath();
+                content = "date_time: " + sdf2.format(new Date())
+                        + "\t fileSize: " + o.getFileSize() + "\t costTime: " + o.getCostTime()
+                        + "\t is_success: " + o.isSuccessFlag() + "\t to_path: /" + o.getPath();
                 pw.println(content);
             }
             pw.flush();

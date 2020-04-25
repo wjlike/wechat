@@ -181,6 +181,7 @@ public class WxLogUtil {
                     }
                 } catch(Exception e) {
                     //解析json异常，说明微信返回的不是一个json，上面已经直接将返回信息写入日志中即可
+                    logbean.setRemark(logbean.getRemark() + " " + returnStr);
                     //e.printStackTrace();
                 }
             }
