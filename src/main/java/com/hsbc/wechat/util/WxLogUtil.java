@@ -20,7 +20,6 @@ import org.springframework.stereotype.Component;
  * 此类将以文件的形式记录程序与微信服务器的请求日志。
  * 如需要用数据库记录请求日志，请参考此类实现。
  */
-@Component
 public class WxLogUtil {
 
     //待写入文件的日志信息队列

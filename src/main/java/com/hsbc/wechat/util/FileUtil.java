@@ -84,14 +84,16 @@ public class FileUtil {
      * @throws
      */
     public static void writeStringToFile(String filePath, String countent) {
-        try {
-            File file = new File(filePath.substring(0, filePath.lastIndexOf('/')));
-            if(!file.exists()){file.createNewFile();}
-            FileOutputStream outputStream = new FileOutputStream(new File(filePath));
-            outputStream.write(countent.getBytes());
-            outputStream.close();
-        } catch (Exception e) {
-            logger.error("写入文件失败:" + e.getMessage());
+        synchronized (FileUtil.class){
+            try {
+                File file = new File(filePath.substring(0, filePath.lastIndexOf('/')));
+                if(!file.exists()){file.createNewFile();}
+                FileOutputStream outputStream = new FileOutputStream(new File(filePath));
+                outputStream.write(countent.getBytes());
+                outputStream.close();
+            } catch (Exception e) {
+                logger.error("写入文件失败:" + e.getMessage());
+            }
         }
     }
 

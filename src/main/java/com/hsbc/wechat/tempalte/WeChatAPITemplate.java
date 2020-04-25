@@ -5,6 +5,7 @@ import com.hsbc.wechat.bean.wechat.ChatData;
 import com.hsbc.wechat.bean.wechat.ChatInfo;
 import com.hsbc.wechat.bean.wechat.ContentInfo;
 import com.hsbc.wechat.config.BussinessConfig;
+import com.hsbc.wechat.enums.WeChatInfoTypeEnum;
 import com.hsbc.wechat.util.AESKeyUtil;
 import com.hsbc.wechat.util.WxLogUtil;
 import com.hsbc.wechat.util.FileUtil;
@@ -12,8 +13,7 @@ import com.tencent.wework.Finance;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 
 
 import javax.crypto.Cipher;
@@ -42,22 +42,23 @@ public class WeChatAPITemplate extends Finance{
     @Value("${wechat.data.limit}")
     private int limit=100;
     //初始化默认超长时间为60s
-    private long  timeout  = 15;
+    private static long  timeout  = 15;
     //初始化下载媒体超长时间
-    private long  mediaTimeOut = 30;
+    private static long  mediaTimeOut = 30;
 
-    private String corpid = BussinessConfig.getCorpid();
+    private static String corpid = BussinessConfig.getCorpid();
 
-    private String secret =BussinessConfig.getSecret();
+    private static String secret =BussinessConfig.getSecret();
 
-    private String priKey = BussinessConfig.getPrikey();
+    private static String priKey = BussinessConfig.getPrikey();
 
     private String proxy = "";
     private String paswd = "";
 
-    private String mediaPath = BussinessConfig.getMediapath();
+    private static String basefilepath = BussinessConfig.getDownloadpath();
+    
+    private static String separator = File.separator;
 
-    private String downloadPath = BussinessConfig.getDownloadpath();
 
 
     /**
@@ -81,13 +82,13 @@ public class WeChatAPITemplate extends Finance{
 
     /**
      * 初始化
-     * @return true:初始化成功
-     *         false：初始化失败
      */
-    private boolean init(){
+    private void init(){
         sdk = NewSdk();
         int status  = Init(sdk, corpid,secret);
-        return status == 0 ? true:false;
+        log.info("初始化 status:{} [0-true,!0-false]",status);
+//        if(status!=0){DestroySdk();}
+//        Assert.isTrue(status == 0 ? true:false,"WeChatAPITemplate 初始化失败 ");
     }
 
     /**
@@ -115,9 +116,9 @@ public class WeChatAPITemplate extends Finance{
 
         chatInfo = JSONObject.parseObject(data,ChatInfo.class);
 
-        if(chatInfo.getChatData().size()<=0){
+        if(chatInfo.getErrcode()!=0  || chatInfo.getChatData().size()<=0){
     
-            log.info("No ChatDate ! seq:{}",seq);
+            log.info("No ChatDate ! seq:{},errcode:{},errmsg:{}",seq,chatInfo.getErrcode(),chatInfo.getErrmsg());
             return;
         }
 
@@ -125,9 +126,14 @@ public class WeChatAPITemplate extends Finance{
 
         doDecryptChatInfo(chatInfo);
 
-
     }
+
+    /**
+     * 获取最大seq 并记录
+     * @param chatInfo
+     */
     private void getAndWriteMaxSeq(ChatInfo chatInfo){
+        log.info("start getAndWriteMaxSeq");
         chatInfo.getChatData().forEach(chatData->{
             this.seq = Math.max(chatData.getSeq(),this.seq);
         });
@@ -148,22 +154,11 @@ public class WeChatAPITemplate extends Finance{
                 //RSA/ECB/PKCS1Padding
                 Cipher cipher = Cipher.getInstance("RSA");
                 cipher.init(Cipher.DECRYPT_MODE, privateKey);
-
+                //解密Encrypt_random_key
                 byte[] randomkeybyte = Base64.getDecoder().decode(chatData.getEncrypt_random_key());
                 byte[] finalrandomkeybyte = cipher.doFinal(randomkeybyte);
                 String finalrandomkey = new String(finalrandomkeybyte);
 
-//                byte[] keyBytes = Base64.getDecoder().decode(priKey);
-//                PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(keyBytes);
-//                KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-//                PrivateKey privateKey = keyFactory.generatePrivate(keySpec);
-//
-//                byte[] contentbyte = Base64.getDecoder().decode(chatData.getEncrypt_random_key());
-//                Cipher cipher = Cipher.getInstance("RSA");
-//                cipher.init(Cipher.DECRYPT_MODE,privateKey);
-//
-//                byte[] decodeContent = cipher.doFinal(contentbyte);
-//                String contentKey = new String(decodeContent);
 
                 String encrypt_chat_msg = chatData.getEncrypt_chat_msg();
                 ContentInfo contentInfo = DecryptData(finalrandomkey,encrypt_chat_msg);
@@ -214,20 +209,76 @@ public class WeChatAPITemplate extends Finance{
      * @param contentInfo
      */
     private void generateContentInfo(ContentInfo contentInfo,Long seq) {
-        parseMediaDataTocal(contentInfo,seq);
-
+        //解析媒体信息到本地
+        parseMediaDataToLocal(contentInfo,seq);
+        //解析聊天信息到本地
         parseContentToLocal(contentInfo,seq);
 
     }
+    /**
+     *
+     * @param contentInfo 聊天内容
+     */
+    private  void parseMediaDataToLocal(ContentInfo contentInfo,Long seq){
+        String msgType = "";
+        String mediaPath = "";
 
+        if (StringUtils.isNotBlank(contentInfo.getMsgType())) {
+            msgType = contentInfo.getMsgType();
+        }
+
+        if (WeChatInfoTypeEnum.TEXT.getValue().equals(msgType)) {
+        } else if (WeChatInfoTypeEnum.AGREE.getValue().equals(msgType)) {
+
+        } else if (WeChatInfoTypeEnum.CARD.getValue().equals(msgType)) {
+
+        } else if (WeChatInfoTypeEnum.EMOTION.getValue().equals(msgType)) {
+
+            mediaPath = handleMediaData(contentInfo.getEmotion().getSdkfileid(),msgType,
+                    contentInfo.getEmotion().getType() == 1 ? "gif" : "png",seq);
+            contentInfo.getEmotion().setUrl(mediaPath);
+
+        } else if (WeChatInfoTypeEnum.FILE.getValue().equals(msgType)) {
+            mediaPath = handleMediaData(contentInfo.getFile().getSdkfileid(),msgType,
+                    contentInfo.getFile().getFileext(),seq);
+            contentInfo.getFile().setUrl(mediaPath);
+        } else if (WeChatInfoTypeEnum.IMAGE.getValue().equals(msgType)) {
+
+            mediaPath = handleMediaData(contentInfo.getImage().getSdkfileid(),msgType,
+                    "jpg",seq);
+            contentInfo.getImage().setUrl(mediaPath);
+
+        } else if (WeChatInfoTypeEnum.LINK.getValue().equals(msgType)) {
+
+        } else if (WeChatInfoTypeEnum.LOCATION.getValue().equals(msgType)) {
+
+        } else if (WeChatInfoTypeEnum.REVOKE.getValue().equals(msgType)) {
+
+        } else if (WeChatInfoTypeEnum.VIDEO.getValue().equals(msgType)) {
+
+            mediaPath = handleMediaData(contentInfo.getVideo().getSdkfileid(),msgType,
+                    null,seq);
+            contentInfo.getVideo().setUrl(mediaPath);
+
+        } else if (WeChatInfoTypeEnum.VOICE.getValue().equals(msgType)) {
+
+            mediaPath = handleMediaData(contentInfo.getVoice().getSdkfileid(),msgType,
+                    null,seq);
+            contentInfo.getVoice().setUrl(mediaPath);
+        } else if (WeChatInfoTypeEnum.WEAPP.getValue().equals(msgType)) {
+
+        } else {
+            log.info("不支持的消息类型msgType={}" ,msgType);
+        }
+
+    }
     private void parseContentToLocal(ContentInfo contentInfo,long seq) {
-        String basefilepath = BussinessConfig.getDownloadpath();
         String outputFilePath = "";
         String[] strNow = new SimpleDateFormat("yyyy-MM-dd").format(new Date()).toString().split("-");
         String year = strNow[0];
         String month = strNow[1];
         String day = strNow[2];
-        outputFilePath = basefilepath + "/" + year + "/" + month + "/" + day + "/content/" + contentInfo.getMsgType() + "/" ;
+        outputFilePath = basefilepath + separator + year + separator + month + separator + day + separator+"content"+separator + contentInfo.getMsgType() + separator ;
         log.info("parseContentToLocal文件路径:{}",outputFilePath);
         FileWriter fileWriter = null;
         try {
@@ -257,7 +308,6 @@ public class WeChatAPITemplate extends Finance{
      */
     private String handleMediaData(String sdkField,String msgType,String fileExt,long seq){
 
-        String basefilepath = BussinessConfig.getDownloadpath();
         String outputFilePath = "";
         String[] strNow = new SimpleDateFormat("yyyy-MM-dd").format(new Date()).toString().split("-");
         String year = strNow[0];
@@ -265,10 +315,10 @@ public class WeChatAPITemplate extends Finance{
         String day = strNow[2];
         //获取媒体文件生成路径
         if (StringUtils.isNotBlank(msgType)) {
-            outputFilePath = basefilepath + "/" + year + "/" + month + "/" + day + "/media/" + msgType + "/" + seq + "."
+            outputFilePath = basefilepath + File.separator + year + separator + month + separator + day + separator+"media"+separator + msgType + separator + seq + "."
                     + fileExt;
         } else {
-            outputFilePath = basefilepath + "/" + year + "/" + month + "/" + day + "/media/" + msgType + "/" + seq;
+            outputFilePath = basefilepath + separator + year + separator + month + separator + day + separator+"media"+separator + msgType + separator + seq;
         }
 
         log.info("handleMediaData文件路径:" + outputFilePath);
@@ -311,64 +361,7 @@ public class WeChatAPITemplate extends Finance{
 
     }
 
-    /**
-     *
-     * @param contentInfo 聊天内容
-     */
-    private  void parseMediaDataTocal(ContentInfo contentInfo,Long seq){
-        String msgType = "";
-        String mediaPath = "";
 
-        if (StringUtils.isNotBlank(contentInfo.getMsgType())) {
-            msgType = contentInfo.getMsgType();
-        }
-
-        if ("text".equals(msgType)) {
-        } else if ("agree".equals(msgType)) {
-
-        } else if ("card".equals(msgType)) {
-
-        } else if ("emotion".equals(msgType)) {
-
-            mediaPath = handleMediaData(contentInfo.getEmotion().getSdkfileid(),msgType,
-                    contentInfo.getEmotion().getType() == 1 ? "gif" : "png",seq);
-            contentInfo.getEmotion().setUrl(mediaPath);
-
-        } else if ("file".equals(msgType)) {
-
-            mediaPath = handleMediaData(contentInfo.getFile().getSdkfileid(),msgType,
-                    contentInfo.getFile().getFileext(),seq);
-            contentInfo.getFile().setUrl(mediaPath);
-        } else if ("image".equals(msgType)) {
-
-            mediaPath = handleMediaData(contentInfo.getImage().getSdkfileid(),msgType,
-                    "jpg",seq);
-            contentInfo.getImage().setUrl(mediaPath);
-
-        } else if ("link".equals(msgType)) {
-
-        } else if ("location".equals(msgType)) {
-
-        } else if ("revoke".equals(msgType)) {
-
-        } else if ("video".equals(msgType)) {
-
-            mediaPath = handleMediaData(contentInfo.getVideo().getSdkfileid(),msgType,
-                    null,seq);
-            contentInfo.getVideo().setUrl(mediaPath);
-
-        } else if ("voice".equals(msgType)) {
-
-            mediaPath = handleMediaData(contentInfo.getVoice().getSdkfileid(),msgType,
-                    null,seq);
-            contentInfo.getVoice().setUrl(mediaPath);
-        } else if ("weapp".equals(msgType)) {
-
-        } else {
-            log.info("不支持的消息类型msgType={}" ,msgType);
-        }
-
-    }
     private long getLocatSeq(){
         String str =  FileUtil.readStringFromFile(BussinessConfig.getSeqFilepPth());
         if(str==null || "".equals(str)){
