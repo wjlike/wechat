@@ -1,13 +1,19 @@
 package com.hsbc.wechat.service.impl;
 
 import com.hsbc.wechat.config.BussinessConfig;
+import com.hsbc.wechat.service.SftpService;
 import com.hsbc.wechat.service.WeChatContentService;
 import com.hsbc.wechat.service.WechatApiService;
 import com.hsbc.wechat.tempalte.WeChatAPITemplate;
 import com.hsbc.wechat.util.FileUtil;
+import com.hsbc.wechat.util.SftpFileUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 
 @Slf4j
@@ -15,6 +21,11 @@ import org.springframework.stereotype.Service;
 public class WeChatContentServiceImpl implements WeChatContentService {
     @Autowired
     WechatApiService wechatApiService;
+    @Autowired
+    SftpService sftpService;
+
+    private static String basefilepath= BussinessConfig.getDownloadpath();
+    private static String separator = File.separator;
 
     @Override
     public void doWeChatContent() {
@@ -23,10 +34,17 @@ public class WeChatContentServiceImpl implements WeChatContentService {
             try {
                 long seq = getLocatSeq();
                 wechatApiService.get(seq);
-                //一小时后查看是否还存在数据
-                Thread.sleep(10000);
+                //五分钟后查看是否还存在数据
+                Thread.sleep(1000*60*5);
                 boolean hasNext = wechatApiService.hasNext(getLocatSeq());
                 if(!hasNext){
+                    String[] strNow = new SimpleDateFormat("yyyy-MM-dd").format(new Date()).toString().split("-");
+                    String year = strNow[0];
+                    String month = strNow[1];
+                    String day = strNow[2];
+                    String path = basefilepath + separator + year + separator + month + separator + day + separator ;
+                    File file = new File("");
+                    sftpService.uploadPath(file,true);
                     break;
                 }
 
