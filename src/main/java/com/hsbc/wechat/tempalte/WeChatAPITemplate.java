@@ -13,7 +13,6 @@ import com.tencent.wework.Finance;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.util.Assert;
 
 
 import javax.crypto.Cipher;
@@ -85,10 +84,7 @@ public class WeChatAPITemplate extends Finance{
      */
     private void init(){
         sdk = NewSdk();
-        int status  = Init(sdk, corpid,secret);
-        log.info("初始化 status:{} [0-true,!0-false]",status);
-//        if(status!=0){DestroySdk();}
-//        Assert.isTrue(status == 0 ? true:false,"WeChatAPITemplate 初始化失败 ");
+        Init(sdk, corpid,secret);
     }
 
     /**
@@ -137,8 +133,8 @@ public class WeChatAPITemplate extends Finance{
         chatInfo.getChatData().forEach(chatData->{
             this.seq = Math.max(chatData.getSeq(),this.seq);
         });
-        long localseq = getLocatSeq();
-        this.seq = Math.max(localseq,this.seq);
+        long localSeq = getLocatSeq();
+        this.seq = Math.max(localSeq,this.seq);
         FileUtil.writeStringToFile(BussinessConfig.getSeqFilepPth(),this.seq+"");
     }
     /**
@@ -228,10 +224,11 @@ public class WeChatAPITemplate extends Finance{
         }
 
         if (WeChatInfoTypeEnum.TEXT.getValue().equals(msgType)) {
+            //不做处理
         } else if (WeChatInfoTypeEnum.AGREE.getValue().equals(msgType)) {
-
+            //不做处理
         } else if (WeChatInfoTypeEnum.CARD.getValue().equals(msgType)) {
-
+            //不做处理
         } else if (WeChatInfoTypeEnum.EMOTION.getValue().equals(msgType)) {
 
             mediaPath = handleMediaData(contentInfo.getEmotion().getSdkfileid(),msgType,
@@ -249,11 +246,11 @@ public class WeChatAPITemplate extends Finance{
             contentInfo.getImage().setUrl(mediaPath);
 
         } else if (WeChatInfoTypeEnum.LINK.getValue().equals(msgType)) {
-
+            //不做处理
         } else if (WeChatInfoTypeEnum.LOCATION.getValue().equals(msgType)) {
-
+            //不做处理
         } else if (WeChatInfoTypeEnum.REVOKE.getValue().equals(msgType)) {
-
+            //不做处理
         } else if (WeChatInfoTypeEnum.VIDEO.getValue().equals(msgType)) {
 
             mediaPath = handleMediaData(contentInfo.getVideo().getSdkfileid(),msgType,
@@ -266,7 +263,7 @@ public class WeChatAPITemplate extends Finance{
                     null,seq);
             contentInfo.getVoice().setUrl(mediaPath);
         } else if (WeChatInfoTypeEnum.WEAPP.getValue().equals(msgType)) {
-
+            //不做处理
         } else {
             log.info("不支持的消息类型msgType={}" ,msgType);
         }

@@ -13,6 +13,9 @@ public class BussinessConfig {
     private static String seqFilepPth;
     private static String logPath;
 
+    //简单的处理
+    public static String JASYPT_ENCRYPTOR_PASSWORD="";
+
     public static String getCorpid() {
         return corpid;
     }
@@ -20,7 +23,6 @@ public class BussinessConfig {
     public static String getSecret() {
         return secret;
     }
-
     public static String getPrikey() {
         return prikey;
     }
@@ -36,6 +38,7 @@ public class BussinessConfig {
     public static String getLogPath() {
         return logPath;
     }
+
 
     @Value("${wechat.corpid}")
     public  void setCorpid(String corpid) {
