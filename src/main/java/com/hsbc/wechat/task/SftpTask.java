@@ -7,6 +7,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 @Component
 public class SftpTask {
@@ -19,13 +21,13 @@ public class SftpTask {
     private SftpService sftpService;
 
     //@Scheduled(cron = "${wechat.cornsftp}")
-    //@Scheduled(cron = "0 * * * * ?")
     public void upload() {
-        System.out.println("start task");
-        String subPath = "2020";
+        System.out.println("start sftp upload task");
+        //String subPath = "2020/04/24";
+        String subPath = new SimpleDateFormat("yyyy/MM/dd").format(new Date());
         String localPath = (localRootFilePath + "/" + subPath).replace("//", "/");
         sftpService.uploadPath(new File(localPath), true);
-        System.out.println("end task");
+        System.out.println("end sftp upload task");
     }
 
 }

@@ -10,6 +10,10 @@ public class SftpLog {
 
     private boolean successFlag;
 
+    private long fileSize;
+
+    private long costTime;
+
     //本地文件根目录，存放聊天记录、从微信下载的媒体文件等
     @Value("${wechat.fileroot}")
     private String localRootFilePath;
