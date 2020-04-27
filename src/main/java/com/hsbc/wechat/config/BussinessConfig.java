@@ -13,6 +13,10 @@ public class BussinessConfig {
     private static String seqFilepPth;
     private static String logPath;
 
+    private static String httpsUploadUrl;
+    private static String zipPath;
+    private static String bakFilePath;
+
     //简单的处理
     public static String JASYPT_ENCRYPTOR_PASSWORD="hfworkwx";
 
@@ -37,6 +41,15 @@ public class BussinessConfig {
     }
     public static String getLogPath() {
         return logPath;
+    }
+    public static String getHttpsUploadUrl() {
+        return httpsUploadUrl;
+    }
+    public static String getZipPath() {
+        return zipPath;
+    }
+    public static String getBakFilePath() {
+        return bakFilePath;
     }
 
 
@@ -63,5 +76,17 @@ public class BussinessConfig {
     @Value("${wechat.logpath}")
     public  void setLogPath(String logPath) {
         BussinessConfig.logPath = logPath;
+    }
+    @Value("${wechat.https.upload.url}")
+    public void setHttpsUploadUrl(String url) {
+        BussinessConfig.httpsUploadUrl = url;
+    }
+    @Value("${wechat.zip.path}")
+    public void setZipPath(String zipPath) {
+        BussinessConfig.zipPath = zipPath;
+    }
+    @Value("${wechat.bakfileroot}")
+    public void setBakFilePath(String bakFilePath) {
+        BussinessConfig.bakFilePath = bakFilePath;
     }
 }
