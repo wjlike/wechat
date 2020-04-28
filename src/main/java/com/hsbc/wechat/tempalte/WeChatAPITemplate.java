@@ -197,7 +197,7 @@ public class WeChatAPITemplate extends Finance{
 
 
     public void DestroySdk(){
-        DestroySdk(sdk);
+        if(sdk != 0) DestroySdk(sdk);
     }
 
     /**
@@ -378,9 +378,8 @@ public class WeChatAPITemplate extends Finance{
         String data = GetContentFromSlice(slice);
 
         chatInfo = JSONObject.parseObject(data,ChatInfo.class);
-
+        DestroySdk();
         if(chatInfo.getChatData().size()<=0){
-            DestroySdk();
             log.info("No ChatDate ! seq:{}",seq);
             return false;
         }
