@@ -1,16 +1,22 @@
 package com.hsbc.wechat.util;
 
+import com.alibaba.fastjson.JSONObject;
 import com.hsbc.wechat.config.BussinessConfig;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
@@ -22,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+@Slf4j
 public class HttpUtil {
 
     /**
@@ -244,4 +251,33 @@ public class HttpUtil {
         getChildrenNum(new File("C:\\Users\\lanruijin\\Desktop\\wechat-like"), fileNum);
         System.out.println("fileNum=" + fileNum[0]);
     }
+
+    /**
+     *  getRequest
+     * @param url
+     * @return
+     * @throws IOException
+     */
+    public static JSONObject doGetJsonByUrl(String url) throws IOException {
+        log.info("request url : {}",url);
+        JSONObject jsonObject = null;
+        HttpClient client = null;
+        HttpGet httpGet = null;
+        try {
+            client = HttpClientBuilder.create().build();
+            httpGet = new HttpGet(url);
+            HttpResponse response = client.execute(httpGet);
+            HttpEntity entity = response.getEntity();
+            if (entity != null) {
+                String result = EntityUtils.toString(entity, "UTF-8");
+                jsonObject = JSONObject.parseObject(result);
+            }
+        } catch (IOException e){
+            e.printStackTrace();
+        }finally {
+            httpGet.releaseConnection();
+            return jsonObject;
+        }
+    }
+
 }
