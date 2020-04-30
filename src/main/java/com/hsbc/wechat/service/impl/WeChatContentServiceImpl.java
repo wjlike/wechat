@@ -6,7 +6,6 @@ import com.hsbc.wechat.service.WeChatContentService;
 import com.hsbc.wechat.service.WechatApiService;
 import com.hsbc.wechat.tempalte.WeChatAPITemplate;
 import com.hsbc.wechat.util.FileUtil;
-import com.hsbc.wechat.util.SftpFileUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -43,7 +42,7 @@ public class WeChatContentServiceImpl implements WeChatContentService {
                     String month = strNow[1];
                     String day = strNow[2];
                     String path = basefilepath + separator + year + separator + month + separator + day + separator ;
-                    File file = new File("");
+                    File file = new File(path);
                     sftpService.uploadPath(file,true);
                     break;
                 }
