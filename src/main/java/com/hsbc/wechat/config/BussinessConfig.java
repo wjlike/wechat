@@ -24,7 +24,7 @@ public class BussinessConfig {
     private static String bakFilePath;
 
     //简单的处理
-    public static String JASYPT_ENCRYPTOR_PASSWORD="hfworkwx";
+    public static String JASYPT_ENCRYPTOR_PASSWORD="";
 
     public static String getCorpid() {
         return corpid;
