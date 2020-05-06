@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class HttpTask {
 
-    @Scheduled(cron = "0 * * * * ?")
+    //@Scheduled(cron = "0 * * * * ?")
     public void run() {
         HttpUtil.zipAndUpload("D:\\tmp\\test\\wechat\\2020");
     }

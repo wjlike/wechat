@@ -12,12 +12,14 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
+import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
 import org.springframework.stereotype.Component;
 
@@ -46,8 +48,9 @@ public class HttpUtil {
             RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(60000).setSocketTimeout(60000).build();
             httppost.setConfig(requestConfig);
             FileBody bin = new FileBody(file);
-            StringBody comment = new StringBody(file.getName(), ContentType.DEFAULT_BINARY);
-            HttpEntity reqEntity = MultipartEntityBuilder.create().setCharset(Charset.forName("UTF-8")).addPart("file", bin).addPart("filename", comment).build();
+            StringBody comment = new StringBody(file.getName(), ContentType.TEXT_PLAIN);
+            HttpEntity reqEntity = MultipartEntityBuilder.create().setCharset(Charset.forName("UTF-8"))
+                    .setMode(HttpMultipartMode.BROWSER_COMPATIBLE).addPart("file", bin).addPart("filename", comment).build();
             httppost.setEntity(reqEntity);
             //log.info("executing request " + httppost.getRequestLine());
             CloseableHttpResponse response = httpclient.execute(httppost);
@@ -192,8 +195,8 @@ public class HttpUtil {
     }
 
     public static void main(String[] args) {
-//        File file = new File("C:\\Users\\lanruijin\\Desktop\\tmp\\abc.zip");
-//        HttpUtil.upload("http://localhost:12345/filereceive/upload?total=1", file);
+        File file = new File("C:\\Users\\lanruijin\\Desktop\\tmp\\程序打包工具-精简.zip");
+        HttpUtil.upload("http://localhost:12345/filereceive/upload?total=1", file);
 
 //        HttpUtil.zipAndUpload("D:\\tmp\\test\\wechat\\2020");
 
