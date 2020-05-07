@@ -1,10 +1,9 @@
 package com.hsbc.wechat.service.impl;
 
 import com.hsbc.wechat.service.SftpService;
-import com.hsbc.wechat.util.FileUtil;
-import com.hsbc.wechat.util.SftpFileUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import com.hsbc.wechat.util.SftpFileUtil;
 
 import java.io.File;
 

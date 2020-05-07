@@ -6,6 +6,7 @@ import com.hsbc.wechat.service.WeChatContentService;
 import com.hsbc.wechat.service.WechatApiService;
 import com.hsbc.wechat.tempalte.WeChatAPITemplate;
 import com.hsbc.wechat.util.FileUtil;
+import com.hsbc.wechat.util.HttpUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -38,8 +39,7 @@ public class WeChatContentServiceImpl implements WeChatContentService {
                 boolean hasNext = wechatApiService.hasNext(getLocatSeq());
                 if(!hasNext){
                     String path = basefilepath + separator + strNow + separator ;
-                    File file = new File(path);
-                    sftpService.uploadPath(file,true);
+                    HttpUtil.folderUpload(path);
                     break;
                 }
 

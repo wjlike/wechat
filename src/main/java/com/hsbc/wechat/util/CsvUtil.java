@@ -143,7 +143,12 @@ public class CsvUtil {
             RandomAccessFile randomFile = null;
             try {
                 // 打开一个随机访问文件流，按读写方式
+                File file = new File(fileName+".csv");
+                if (!file.exists()){
+                    file.createNewFile();
+                }
                 randomFile = new RandomAccessFile(fileName+".csv", "rw");
+
                 // 将写文件指针移到文件尾。
                 long fileLength = randomFile.length();
                 randomFile.seek(fileLength);

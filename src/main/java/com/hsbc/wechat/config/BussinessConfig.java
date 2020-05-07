@@ -24,7 +24,7 @@ public class BussinessConfig {
     private static String bakFilePath;
 
     //简单的处理
-    public static String JASYPT_ENCRYPTOR_PASSWORD="";
+    public static String JASYPT_ENCRYPTOR_PASSWORD="hfworkwx";
 
     public static String getCorpid() {
         return corpid;
@@ -75,7 +75,8 @@ public class BussinessConfig {
     public  void setSecret(String secret) {
         BussinessConfig.secret = secret;
     }
-   // @Value("${wechat.prikey}")
+
+  //  @Value("${wechat.prikey}")
     public  void setPrikey(String prikey) {
         BussinessConfig.prikey = prikey;
     }

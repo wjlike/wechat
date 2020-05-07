@@ -169,6 +169,40 @@ public class HttpUtil {
         }
 
     }
+    /**
+     * 文件压缩并上传到 windows 服务器
+     * @param path 待压缩和上传的路径
+     */
+    public static void folderUpload(String path) {
+        File file = new File(path);
+        // 获取文件个数
+        int[] fileNum = new int[] { 0 };
+        getChildrenNum(file, fileNum);
+        sendFile(file,fileNum);
+
+        // 将文件夹剪切到备份目录
+        movePath(file);
+
+    }
+
+    /**
+     * 递归发送文件
+     * @param file
+     * @param fileNum
+     */
+    private static void sendFile(File file, int[] fileNum) {
+        int limit = 0;
+        String url = BussinessConfig.getHttpsUploadUrl() + "?total=" + fileNum[0]+"&present=";
+        if (file.isFile()) {
+            limit++;
+            HttpUtil.upload(url, file);
+        } else {
+            File[] children = file.listFiles();
+            for (File f : children) {
+                sendFile(f, fileNum);
+            }
+        }
+    }
 
     /**
      * 获取某文件夹下的文件个数

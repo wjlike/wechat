@@ -272,6 +272,10 @@ public class WeChatAPITemplate extends Finance{
 
 
         outputFilePath = basefilepath + separator + strNow + separator+"content"+separator  ;
+        File file  = new File(outputFilePath);
+        if(!file.exists()){
+            file.mkdirs();
+        }
         log.info("parseContentToLocal文件路径:{}",outputFilePath);
         try {
             CsvUtil.writeCsvFromString(JSONObject.toJSONString(contentInfo),outputFilePath+strNow);
@@ -288,12 +292,8 @@ public class WeChatAPITemplate extends Finance{
     private String handleMediaData(String sdkField,String roomid,String fileExt,long seq){
 
         String outputFilePath = "";
-        String[] strNow = new SimpleDateFormat("yyyy-MM-dd").format(new Date()).toString().split("-");
-        String year = strNow[0];
-        String month = strNow[1];
-        String day = strNow[2];
         //获取媒体文件生成路径
-        outputFilePath = basefilepath + separator + strNow + separator+"media"+separator + roomid +"-" + seq + "."
+        outputFilePath = basefilepath + separator + strNow.toString() + separator+"media"+separator + roomid +"-" + seq + "."
                     + fileExt;
 
         log.info("handleMediaData文件路径:" + outputFilePath);

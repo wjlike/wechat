@@ -24,7 +24,6 @@ public class FileUtil {
     /**
      *
      * @Description：读取远程服务，并写入本地服务
-     * @param url
      * @param filePath: 返回结果描述
      * @return void: 返回值类型
      * @throws
@@ -222,7 +221,6 @@ public class FileUtil {
     /**
      *
      * @Description：创建相关文件目录
-     * @param file: 返回结果描述
      * @return void: 返回值类型
      * @throws
      */

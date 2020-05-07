@@ -362,6 +362,7 @@ public class SftpFileUtil {
      */
     private static boolean uploadPathSub(ChannelSftp sftp, File localPath, boolean isRecursion, int mode) {
         try {
+            //TODO 获取文件总数
             if (localPath.isFile()) {
                 //获取相对目录
                 String subPath = localPath.getAbsolutePath().replace("\\", "/")
