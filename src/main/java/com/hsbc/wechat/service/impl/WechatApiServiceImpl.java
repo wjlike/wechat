@@ -22,10 +22,10 @@ public class WechatApiServiceImpl implements WechatApiService {
     @Value("${wechat.data.limit}")
     private long chatdata_limit;
     @Override
-    public void get(long seq) {
+    public void get(long seq,String strNow) {
 
         for (int i = 1; i <= QUERY_LIMIST ; i++) {
-             asycWechatApiService.get(seq+(i-1)*chatdata_limit);
+             asycWechatApiService.get(seq+(i-1)*chatdata_limit,strNow);
         }
     }
 

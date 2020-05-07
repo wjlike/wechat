@@ -13,7 +13,10 @@ import java.util.ArrayList;
 public class ContentInfo implements Serializable {
 
     private static final long serialVersionUID = 6052530845022305477L;
-
+    /**
+     * seq
+     */
+    private Long seq;
     /**
      * 消息id，消息的唯一标识
      */

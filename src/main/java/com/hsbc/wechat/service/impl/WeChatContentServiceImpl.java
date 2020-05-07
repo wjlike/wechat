@@ -28,20 +28,16 @@ public class WeChatContentServiceImpl implements WeChatContentService {
 
     @Override
     public void doWeChatContent() {
-
+        String strNow = new SimpleDateFormat("yyyyMMddHH").format(new Date()).toString();
         while (true){
             try {
                 long seq = getLocatSeq();
-                wechatApiService.get(seq);
+                wechatApiService.get(seq,strNow);
                 //五分钟后查看是否还存在数据
                 Thread.sleep(1000*60*5);
                 boolean hasNext = wechatApiService.hasNext(getLocatSeq());
                 if(!hasNext){
-                    String[] strNow = new SimpleDateFormat("yyyy-MM-dd").format(new Date()).toString().split("-");
-                    String year = strNow[0];
-                    String month = strNow[1];
-                    String day = strNow[2];
-                    String path = basefilepath + separator + year + separator + month + separator + day + separator ;
+                    String path = basefilepath + separator + strNow + separator ;
                     File file = new File(path);
                     sftpService.uploadPath(file,true);
                     break;
@@ -60,7 +56,8 @@ public class WeChatContentServiceImpl implements WeChatContentService {
     @Override
     public void test(long seq) {
        // long seq = getLocatSeq();
-        WeChatAPITemplate template = new WeChatAPITemplate();
+        String strNow = new SimpleDateFormat("yyyyMMddHH").format(new Date()).toString();
+        WeChatAPITemplate template = new WeChatAPITemplate(strNow);
         template.getChatData(seq);
         template.DestroySdk();
     }

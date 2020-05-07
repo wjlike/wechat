@@ -7,6 +7,7 @@ import com.hsbc.wechat.bean.wechat.ContentInfo;
 import com.hsbc.wechat.config.BussinessConfig;
 import com.hsbc.wechat.enums.WeChatInfoTypeEnum;
 import com.hsbc.wechat.util.AESKeyUtil;
+import com.hsbc.wechat.util.CsvUtil;
 import com.hsbc.wechat.util.WxLogUtil;
 import com.hsbc.wechat.util.FileUtil;
 import com.tencent.wework.Finance;
@@ -18,7 +19,6 @@ import org.springframework.beans.factory.annotation.Value;
 import javax.crypto.Cipher;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.security.PrivateKey;
 import java.text.SimpleDateFormat;
 import java.util.Base64;
@@ -42,8 +42,6 @@ public class WeChatAPITemplate extends Finance{
     private int limit=100;
     //初始化默认超长时间为60s
     private static long  timeout  = 15;
-    //初始化下载媒体超长时间
-    private static long  mediaTimeOut = 30;
 
     private static String corpid = BussinessConfig.getCorpid();
 
@@ -58,24 +56,20 @@ public class WeChatAPITemplate extends Finance{
     
     private static String separator = File.separator;
 
+    private String strNow = "";
 
-
-    /**
-     *
-     * @param limit 每次获取的数量，最大值为1000
-     * @param timeout 超时设置
-     */
-    public  WeChatAPITemplate(int limit,long  timeout){
-        this.timeout = timeout<=0?this.timeout:timeout;
-        this.limit = limit;
-        init();
-    }
 
     /**
      * 每次获取的数量，最大值为1000
      * 默认超时15s
      */
+    public  WeChatAPITemplate(String strNow){
+        this.strNow = strNow;
+        init();
+    }
+
     public  WeChatAPITemplate(){
+        this.strNow = new SimpleDateFormat("yyyyMMddHH").format(new Date()).toString();;
         init();
     }
 
@@ -95,7 +89,7 @@ public class WeChatAPITemplate extends Finance{
         log.info("Start get ChatDate  seq:{}",seq);
         long startTimeMillis = System.currentTimeMillis();
         seq = Math.max(seq, 0);
-        ChatInfo chatInfo = null;
+        ChatInfo chatInfo;
         //返回本次拉取消息的数据.密文消息
         long slice = NewSlice();
         int ret = GetChatData(sdk, seq, limit, proxy, paswd, timeout, slice);
@@ -158,6 +152,10 @@ public class WeChatAPITemplate extends Finance{
 
                 String encrypt_chat_msg = chatData.getEncrypt_chat_msg();
                 ContentInfo contentInfo = DecryptData(finalrandomkey,encrypt_chat_msg);
+                /**
+                 * contentInfo 中添加seq
+                 */
+                contentInfo.setSeq(chatData.getSeq());
 
                 generateContentInfo(contentInfo,chatData.getSeq());
 
@@ -231,17 +229,17 @@ public class WeChatAPITemplate extends Finance{
             //不做处理
         } else if (WeChatInfoTypeEnum.EMOTION.getValue().equals(msgType)) {
 
-            mediaPath = handleMediaData(contentInfo.getEmotion().getSdkfileid(),msgType,
+            mediaPath = handleMediaData(contentInfo.getEmotion().getSdkfileid(),contentInfo.getRoomid(),
                     contentInfo.getEmotion().getType() == 1 ? "gif" : "png",seq);
             contentInfo.getEmotion().setUrl(mediaPath);
 
         } else if (WeChatInfoTypeEnum.FILE.getValue().equals(msgType)) {
-            mediaPath = handleMediaData(contentInfo.getFile().getSdkfileid(),msgType,
+            mediaPath = handleMediaData(contentInfo.getFile().getSdkfileid(),contentInfo.getRoomid(),
                     contentInfo.getFile().getFileext(),seq);
             contentInfo.getFile().setUrl(mediaPath);
         } else if (WeChatInfoTypeEnum.IMAGE.getValue().equals(msgType)) {
 
-            mediaPath = handleMediaData(contentInfo.getImage().getSdkfileid(),msgType,
+            mediaPath = handleMediaData(contentInfo.getImage().getSdkfileid(),contentInfo.getRoomid(),
                     "jpg",seq);
             contentInfo.getImage().setUrl(mediaPath);
 
@@ -253,13 +251,13 @@ public class WeChatAPITemplate extends Finance{
             //不做处理
         } else if (WeChatInfoTypeEnum.VIDEO.getValue().equals(msgType)) {
 
-            mediaPath = handleMediaData(contentInfo.getVideo().getSdkfileid(),msgType,
+            mediaPath = handleMediaData(contentInfo.getVideo().getSdkfileid(),contentInfo.getRoomid(),
                     null,seq);
             contentInfo.getVideo().setUrl(mediaPath);
 
         } else if (WeChatInfoTypeEnum.VOICE.getValue().equals(msgType)) {
 
-            mediaPath = handleMediaData(contentInfo.getVoice().getSdkfileid(),msgType,
+            mediaPath = handleMediaData(contentInfo.getVoice().getSdkfileid(),contentInfo.getRoomid(),
                     null,seq);
             contentInfo.getVoice().setUrl(mediaPath);
         } else if (WeChatInfoTypeEnum.WEAPP.getValue().equals(msgType)) {
@@ -271,39 +269,23 @@ public class WeChatAPITemplate extends Finance{
     }
     private void parseContentToLocal(ContentInfo contentInfo,long seq) {
         String outputFilePath = "";
-        String[] strNow = new SimpleDateFormat("yyyy-MM-dd").format(new Date()).toString().split("-");
-        String year = strNow[0];
-        String month = strNow[1];
-        String day = strNow[2];
-        outputFilePath = basefilepath + separator + year + separator + month + separator + day + separator+"content"+separator + contentInfo.getMsgType() + separator ;
+
+
+        outputFilePath = basefilepath + separator + strNow + separator+"content"+separator  ;
         log.info("parseContentToLocal文件路径:{}",outputFilePath);
-        FileWriter fileWriter = null;
         try {
-            FileUtil.CreateDir(outputFilePath);
-            File file = new File(outputFilePath+seq+".json");
-            if(!file.exists()){file.createNewFile();}
-            fileWriter =new FileWriter(file, true);
-            fileWriter.write(JSONObject.toJSONString(contentInfo));
-            fileWriter.flush();
+            CsvUtil.writeCsvFromString(JSONObject.toJSONString(contentInfo),outputFilePath+strNow);
+
         }catch ( Exception e){
             e.printStackTrace();
-        }finally {
-            if(fileWriter!=null){
-                try {
-                    fileWriter.close();
-                }catch (Exception e){
-                    e.printStackTrace();
-                }
-            }
         }
-
     }
 
     /**
      * 拉取媒体消息方法
      * @return
      */
-    private String handleMediaData(String sdkField,String msgType,String fileExt,long seq){
+    private String handleMediaData(String sdkField,String roomid,String fileExt,long seq){
 
         String outputFilePath = "";
         String[] strNow = new SimpleDateFormat("yyyy-MM-dd").format(new Date()).toString().split("-");
@@ -311,12 +293,8 @@ public class WeChatAPITemplate extends Finance{
         String month = strNow[1];
         String day = strNow[2];
         //获取媒体文件生成路径
-        if (StringUtils.isNotBlank(msgType)) {
-            outputFilePath = basefilepath + File.separator + year + separator + month + separator + day + separator+"media"+separator + msgType + separator + seq + "."
+        outputFilePath = basefilepath + separator + strNow + separator+"media"+separator + roomid +"-" + seq + "."
                     + fileExt;
-        } else {
-            outputFilePath = basefilepath + separator + year + separator + month + separator + day + separator+"media"+separator + msgType + separator + seq;
-        }
 
         log.info("handleMediaData文件路径:" + outputFilePath);
         File outputFile = new File(outputFilePath);
@@ -329,6 +307,8 @@ public class WeChatAPITemplate extends Finance{
         long startTimeMillis = System.currentTimeMillis();
         while (true) {
             long media_data = Finance.NewMediaData();
+            //初始化下载媒体超长时间
+            long mediaTimeOut = 30;
             ret = GetMediaData(sdk, indexbuf, sdkField, null, null, mediaTimeOut, media_data);
             if (ret != 0) {
                 return outputFilePath;

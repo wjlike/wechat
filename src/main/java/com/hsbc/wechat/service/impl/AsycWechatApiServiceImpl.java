@@ -12,9 +12,9 @@ import org.springframework.stereotype.Service;
 public class AsycWechatApiServiceImpl implements AsycWechatApiService {
     @Override
     @Async
-    public void get(long seq) {
+    public void get(long seq,String strNow) {
         try {
-            WeChatAPITemplate template = new WeChatAPITemplate();
+            WeChatAPITemplate template = new WeChatAPITemplate(strNow);
             template.getChatData(seq);
             template.DestroySdk();
         }catch (Exception e){
