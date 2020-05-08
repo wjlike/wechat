@@ -12,93 +12,29 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
+import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
+import org.springframework.stereotype.Component;
 
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 @Slf4j
+@Component
 public class HttpUtil {
-
-    /**
-     * 通过HTTP、HTTPS传送文件，
-     * 使用jdk内置的net包完成，暂未调通
-     * @param surl 服务器的文件上传url地址
-     * @param file 待上传的文件
-     * @return
-     */
-    /*
-    public static boolean sendByHttp(String surl, File file) {
-        OutputStream out = null;
-        DataInputStream in = null;
-        HttpURLConnection conn = null;
-        try {
-            // 创建Connection连接
-            URL url = new URL(surl);
-            conn = (HttpURLConnection)url.openConnection();
-            // 创建POST请求
-            conn.setDoOutput(true);
-            conn.setUseCaches(false);
-            conn.setRequestMethod("POST");
-            conn.setRequestProperty("Charset", "UTF-8");
-            conn.setRequestProperty("Cache-Control","no-cache");
-            conn.setRequestProperty("Connection", "Keep-Alive");
-            conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.113 Safari/537.36");
-
-            String bound = "----------" + System.currentTimeMillis();
-            conn.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + bound);
-
-            conn.connect();
-            conn.setConnectTimeout(100000);
-            // 通过流的方式发送文件
-            out = conn.getOutputStream();
-
-            StringBuilder sb = new StringBuilder();
-            sb.append("--");
-            sb.append(bound);
-            sb.append("\r\n");
-            sb.append("Content-Disposition: form-data;name=\"file\";filename=\"" + file.getName() + "\"\r\n\r\n");
-            out.write(sb.toString().getBytes());
-
-            in = new DataInputStream(new FileInputStream(file));
-            int bytes = 0;
-            byte[] buffer = new byte[1024];
-            while ((bytes = in.read(buffer)) != -1) {
-                out.write(buffer,0, bytes);
-            }
-            out.flush();
-            conn.getInputStream();
-            return true;
-        } catch (Exception e) {
-            System.out.println("发送文件出现异常！" + e);
-            e.printStackTrace();
-            return false;
-        } finally {
-            try {
-                if (in != null) {
-                    in.close();
-                }
-                if (out != null) {
-                    out.close();
-                }
-                if (conn != null) {
-                    conn.disconnect();
-                }
-            } catch (Exception e1) {}
-        }
-    }
-     */
 
     /**
      * 通过 HTTP、HTTPS 进行文件上传，依赖 http-client 插件
@@ -109,20 +45,21 @@ public class HttpUtil {
         CloseableHttpClient httpclient = HttpClients.createDefault();
         try {
             HttpPost httppost = new HttpPost(url);
-            RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(200000).setSocketTimeout(200000).build();
+            RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(60000).setSocketTimeout(60000).build();
             httppost.setConfig(requestConfig);
             FileBody bin = new FileBody(file);
-            StringBody comment = new StringBody(file.getName(), ContentType.DEFAULT_BINARY);
-            HttpEntity reqEntity = MultipartEntityBuilder.create().addPart("file", bin).addPart("filename", comment).build();
+            StringBody comment = new StringBody(file.getName(), ContentType.TEXT_PLAIN);
+            HttpEntity reqEntity = MultipartEntityBuilder.create().setCharset(Charset.forName("UTF-8"))
+                    .setMode(HttpMultipartMode.BROWSER_COMPATIBLE).addPart("file", bin).addPart("filename", comment).build();
             httppost.setEntity(reqEntity);
-            System.out.println("executing request " + httppost.getRequestLine());
+            //log.info("executing request " + httppost.getRequestLine());
             CloseableHttpResponse response = httpclient.execute(httppost);
             try {
-                System.out.println(response.getStatusLine());
+                //log.info(response.getStatusLine().toString());
                 HttpEntity resEntity = response.getEntity();
                 if (resEntity != null) {
                     String responseEntityStr = EntityUtils.toString(response.getEntity());
-                    System.out.println(responseEntityStr);
+                    log.info(responseEntityStr);
                 }
                 EntityUtils.consume(resEntity);
             } finally {
@@ -130,7 +67,7 @@ public class HttpUtil {
             }
         } catch (IOException e) {
             e.printStackTrace();
-            System.out.println("文件上传windows服务器失败：" + e.toString());
+            log.info("文件上传windows服务器失败：" + e.toString());
         } finally {
             try {
                 httpclient.close();
@@ -153,16 +90,38 @@ public class HttpUtil {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss");
         String zipFileName = "wechat_" + sdf.format(new Date()) + ".zip";
         String zipBaseDir = BussinessConfig.getZipPath();
+        //String zipBaseDir = "d:/tmp/test/wechat/zip";
         zipBaseDir = zipBaseDir.replace("\\", "/");
         if (!zipBaseDir.endsWith("/")) {
             zipBaseDir += "/";
         }
-        boolean zipFlag = ZipUtil.zip(zipBaseDir + zipFileName, path);
+        String zipFileNameReal = zipBaseDir + zipFileName;
+        long startTime = System.currentTimeMillis();
+        boolean zipFlag = ZipUtil.zip(zipFileNameReal, path);
+
+        //记录日志
+        long fileSize = new File(zipFileNameReal).length();
+        String logContent = "文件压缩\t status:" + zipFlag + "\t filesNum:" + fileNum[0]
+                + "\t fileSize(byte):" + fileSize
+                + "\t costTime(ms):" + (System.currentTimeMillis() - startTime)
+                + "\t zipFileName:" + zipFileNameReal;
+        log(logContent);
+
         // 上传
         if (zipFlag) {
             String url = BussinessConfig.getHttpsUploadUrl() + "?total=" + fileNum[0];
+            //String url = "http://localhost:12345/filereceive/upload" + "?total=" + fileNum[0];
+            log.info("文件上传：" + url);
             File zipFile = new File(zipBaseDir, zipFileName);
+            startTime = System.currentTimeMillis();
             HttpUtil.upload(url, zipFile);
+
+            //记录日志
+            logContent = "文件上传\t zipFile:" + zipBaseDir + zipFileName
+                    + "\t fileSize(byte):" + fileSize
+                    + "\t costTime(ms):" + (System.currentTimeMillis() - startTime)
+                    + "\t url:" + url;
+            log(logContent);
 
             // 将文件夹剪切到备份目录
             movePath(file);
@@ -214,8 +173,10 @@ public class HttpUtil {
             num[0] += 1;
         } else {
             File[] children = file.listFiles();
-            for (File f : children) {
-                getChildrenNum(f, num);
+            if (children != null) {
+                for (File f : children) {
+                    getChildrenNum(f, num);
+                }
             }
         }
     }
@@ -238,15 +199,6 @@ public class HttpUtil {
                 }
             }
         }
-        /*
-        //剩下一堆空文件夹怎么处理？删除？删除会误删其他正在从微信下载的文件。
-        try {
-            srcFile.delete();
-            System.out.println("delete file=" + srcFile.getAbsolutePath());
-        } catch(Exception e) {
-            e.printStackTrace();
-        }
-        */
     }
 
     /**
@@ -269,8 +221,7 @@ public class HttpUtil {
         //文件剪切（重命名）
         try {
             srcFile.renameTo(destFile);
-            System.out.println("move srcFile=" + srcFile.getAbsolutePath());
-            System.out.println("move destFile=" + destFile.getAbsolutePath());
+            log.info("Move File, srcFile=" + srcFile.getAbsolutePath() + " destFile=" + destFile.getAbsolutePath());
         } catch(Exception e) {
             e.printStackTrace();
         }
@@ -278,12 +229,14 @@ public class HttpUtil {
     }
 
     public static void main(String[] args) {
-//        File file = new File("C:\\Users\\lanruijin\\Desktop\\tmp\\31414.rar");
-//        HttpUtil.upload("http://localhost:8080/test/upload?total=1", file);
+        File file = new File("C:\\Users\\lanruijin\\Desktop\\tmp\\程序打包工具-精简.zip");
+        HttpUtil.upload("http://localhost:12345/filereceive/upload?total=1", file);
 
-        int[] fileNum = new int[] { 0 };
-        getChildrenNum(new File("C:\\Users\\lanruijin\\Desktop\\wechat-like"), fileNum);
-        System.out.println("fileNum=" + fileNum[0]);
+//        HttpUtil.zipAndUpload("D:\\tmp\\test\\wechat\\2020");
+
+//        int[] fileNum = new int[] { 0 };
+//        getChildrenNum(new File("C:\\Users\\lanruijin\\Desktop\\tmp\\test1"), fileNum);
+//        log.info("fileNum=" + fileNum[0]);
     }
 
     /**
@@ -311,6 +264,30 @@ public class HttpUtil {
         }finally {
             httpGet.releaseConnection();
             return jsonObject;
+        }
+    }
+
+    private static void log(String content) {
+        String logPath = BussinessConfig.getLogPath();
+        String fileName = "http_log_" + new SimpleDateFormat("yyyyMMdd").format(new Date()) + ".log";
+        logPath = (logPath + "/" + fileName).replace("\\", "/").replace("//", "/");
+        BufferedWriter bw = null;
+        File file = new File(logPath);
+        File parent = file.getParentFile();
+        if(!parent.exists()){parent.mkdirs();}
+        try {
+            bw = new BufferedWriter(new FileWriter(file, true));
+            bw.write(content);
+            bw.newLine();
+            bw.flush();
+        } catch (Exception e) {
+            log.error("写http日志失败:" + e.getMessage());
+        } finally {
+            if (bw != null) {
+                try {
+                    bw.close();
+                } catch (Exception e) {}
+            }
         }
     }
 

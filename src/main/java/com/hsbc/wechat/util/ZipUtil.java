@@ -1,24 +1,12 @@
 package com.hsbc.wechat.util;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.apache.http.entity.mime.content.FileBody;
-import org.apache.http.entity.mime.content.StringBody;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+@Slf4j
 public class ZipUtil {
 
     /**
@@ -31,10 +19,14 @@ public class ZipUtil {
     public static boolean zip(String zipFileName, String dir) {
         // 创建ZipOutputStream类对象
         File zipFile = new File(zipFileName);
-        System.out.println("zipFile=" + zipFile.getAbsolutePath());
+        log.info("zipFile=" + zipFile.getAbsolutePath());
+        File parent = zipFile.getParentFile();
+        if (!parent.exists()) {
+            parent.mkdirs();
+        }
         ZipOutputStream out = null;
         // 输出信息
-        System.out.println("压缩中…");
+        log.info("压缩中…");
         // 调用方法，递归压缩
         try {
             out = new ZipOutputStream(new FileOutputStream(zipFile));
@@ -42,7 +34,7 @@ public class ZipUtil {
             return true;
         } catch (Exception e) {
             e.printStackTrace();
-            System.out.println("文件压缩失败：" + e.toString());
+            log.info("文件压缩失败：" + e.toString());
             // 失败了删除压缩文件，以免被后来者使用到
             new File(zipFileName).delete();
             return false;
@@ -52,7 +44,7 @@ public class ZipUtil {
                     out.close();
                 }
             } catch (Exception e2) {}
-            System.out.println("压缩完成…");
+            log.info("压缩完成…");
         }
     }
 
@@ -65,7 +57,7 @@ public class ZipUtil {
      */
     private static void zipCore(ZipOutputStream outputStream, String filePath, String baseDir)
             throws Exception {
-        System.out.println("filePath=" + filePath);
+        //log.info("filePath=" + filePath);
         File file = new File(filePath);
         // 如果是目录，递归压缩
         if (file.isDirectory()) {
@@ -81,7 +73,7 @@ public class ZipUtil {
         } else {
             // 创建新的进入点
             outputStream.putNextEntry(new ZipEntry(baseDir));
-            //System.out.println(baseDir);
+            log.info("压缩：" + filePath);
             // 创建FileInputStream对象
             FileInputStream in = null;
             try {
