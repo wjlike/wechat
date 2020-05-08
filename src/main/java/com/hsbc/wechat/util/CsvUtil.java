@@ -2,14 +2,11 @@ package com.hsbc.wechat.util;
 import java.io.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.ResourceUtils;
 
 /**
  * @Description: CSV生成工具类
@@ -140,6 +137,7 @@ public class CsvUtil {
      */
     public static void writeCsvFromString(String data,String fileName) throws Exception {
         synchronized (CsvUtil.class){
+            data = handleCsvComma(data);
             RandomAccessFile randomFile = null;
             try {
                 // 打开一个随机访问文件流，按读写方式
@@ -166,6 +164,27 @@ public class CsvUtil {
                 }
             }
         }
+    }
+
+    /**
+     * 转义csv内逗号双引号等
+     * @param str
+     * @return
+     */
+    public static String handleCsvComma(String str) {
+        StringBuilder sb = new StringBuilder();
+        String handleStr=str;
+        //先判断字符里是否含有逗号
+        if(str.contains(",")){
+            //如果还有双引号，先将双引号转义，避免两边加了双引号后转义错误
+            if(str.contains("\"")){
+                handleStr=str.replace("\"", "\"\"");
+            }
+            //将逗号转义
+            handleStr="\""+handleStr+"\"";
+        }
+
+        return sb.append(handleStr).append(",").toString();
     }
 
 }
